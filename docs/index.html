@@ -133,6 +133,9 @@
   .pill { font-size: 12px; padding: 2px 8px; border-radius: 99px; background: var(--sky-soft); color: var(--navy); white-space: nowrap; align-self: center; }
   .pill.bd { background: #fff1e6; color: #b45309; }
   .pill.tr { background: #e8f8ef; color: #15803d; }
+  .acts { display: flex; gap: 6px; margin-top: 6px; }
+  .acts button { padding: 4px 10px; font-size: 12.5px; }
+  .acts button.del { background: #fdecec; color: #b42318; }
   .day-h { font-size: 13px; color: var(--muted); margin: 10px 0 2px; font-weight: 600; }
   .day-h:first-child { margin-top: 0; }
   .muted { color: var(--muted); font-size: 13px; }
@@ -429,7 +432,7 @@
   <!-- ปฏิทิน -->
   <section class="view" id="v-cal">
     <div class="card">
-      <h2>เพิ่มกิจกรรม / วันสำคัญ</h2>
+      <h2 id="e-title">เพิ่มกิจกรรม / วันสำคัญ</h2>
       <label class="f"><span>ประเภท</span>
         <select id="e-type">
           <option>นัดหมาย</option><option>อบรม/สัมมนา</option><option>วันเกิด Downline</option>
@@ -443,6 +446,7 @@
       <label class="f" style="margin-top:10px"><span>รายละเอียด</span><input id="e-text" placeholder="เช่น อบรม Amway Cookware ที่ศูนย์แอมเวย์"></label>
       <label class="check"><input type="checkbox" id="e-yearly"> เตือนซ้ำทุกปี (วันเกิดจะเปิดให้อัตโนมัติ)</label>
       <button class="primary" id="e-save" type="button" style="margin-top:12px">ลงปฏิทิน</button>
+      <button type="button" id="e-cancel" style="margin-top:8px;width:100%;display:none">ยกเลิกการแก้ไข</button>
       <p class="muted">ลงในตารางงานเกรียงด้วย (ช่อง 08:00–20:00) ไม่ใส่เวลาจะลงช่องแรกของวัน</p>
     </div>
     <div class="card">
@@ -727,9 +731,10 @@
     }).join('');
   }
   function pillClass(type) { return type.indexOf('วันเกิด') === 0 ? 'pill bd' : (type.indexOf('อบรม') === 0 ? 'pill tr' : 'pill'); }
-  function eventRow(e) {
+  function eventRow(e, actions) {
     var extra = (e.yearly && e.years > 0) ? ' · ครบ ' + e.years + ' ปี' : '';
-    return '<div class="item"><div><div style="white-space:pre-line">' + esc(e.text) + '</div><div class="meta">' + esc((e.time ? e.time + ' · ' : '') + e.type + extra) + '</div></div><span class="' + pillClass(e.type) + '">' + esc(e.type.replace('วันเกิด ', '')) + '</span></div>';
+    var btns = (actions && e.id) ? '<div class="acts"><button type="button" data-edit="' + esc(e.id) + '">แก้ไข</button><button type="button" class="del" data-del="' + esc(e.id) + '">ลบ</button></div>' : '';
+    return '<div class="item"><div><div style="white-space:pre-line">' + esc(e.text) + '</div><div class="meta">' + esc((e.time ? e.time + ' · ' : '') + e.type + extra) + '</div>' + btns + '</div><span class="' + pillClass(e.type) + '">' + esc(e.type.replace('วันเกิด ', '')) + '</span></div>';
   }
   function renderEvents(list) {
     state.events = list || [];
@@ -739,13 +744,13 @@
       var html = '', last = '';
       state.events.forEach(function (e) {
         if (e.date !== last) { html += '<div class="day-h">' + esc(thaiDate(e.date)) + '</div>'; last = e.date; }
-        html += eventRow(e);
+        html += eventRow(e, true);
       });
       box.innerHTML = html;
     }
     var today = state.events.filter(function (e) { return e.date === state.date; });
     $('today-events-card').style.display = today.length ? '' : 'none';
-    $('today-events').innerHTML = today.map(eventRow).join('');
+    $('today-events').innerHTML = today.map(function (e) { return eventRow(e, false); }).join('');
   }
 
   function load() {
@@ -1092,21 +1097,68 @@
       job: $('p-job').value, age: $('p-age').value, district: $('p-district').value, province: $('p-province').value };
     if (!p.name) { toast('กรุณาใส่ชื่อ'); return; }
     var btn = $('p-save'); btn.disabled = true;
-    api({ action: 'addProspect', p: p }).then(function (j) {
+    (function send(force) {
+      return api({ action: 'addProspect', p: p, force: force }).then(function (j) {
+        if (j.duplicate) {
+          if (window.confirm('มีชื่อ "' + j.duplicate.name + '" ในรายชื่อแล้ว (' + (j.duplicate.topic || '-') + ', ' + j.duplicate.score + '/25)\n\nต้องการเพิ่มซ้ำหรือไม่?')) return send(true);
+          toast('ไม่ได้เพิ่มซ้ำ'); return null;
+        }
+        return j;
+      });
+    })(false).then(function (j) {
+      if (!j) return;
       ['p-name', 'p-s1', 'p-s2', 'p-s3', 'p-s4', 'p-job', 'p-age', 'p-district', 'p-province'].forEach(function (id) { $(id).value = ''; });
       renderProspects(j.prospects); toast('เพิ่ม ' + p.name + ' แล้ว');
     }).catch(function (e) { toast(e.message); }).then(function () { btn.disabled = false; });
   });
 
   $('e-type').addEventListener('change', function (e) { if (e.target.value.indexOf('วันเกิด') === 0) $('e-yearly').checked = true; });
+  var editId = null;
+  function resetEventForm() {
+    editId = null; $('e-text').value = ''; $('e-time').value = ''; $('e-yearly').checked = false;
+    $('e-title').textContent = 'เพิ่มกิจกรรม / วันสำคัญ'; $('e-save').textContent = 'ลงปฏิทิน'; $('e-cancel').style.display = 'none';
+  }
+  function dupText(d) {
+    var p = parts(d.date);
+    return '"' + d.text + '" (' + d.type + ') ' + (d.yearly ? 'วันที่ ' + p.d + ' ' + MON[p.m - 1] + ' ทุกปี' : thaiDate(d.date)) + (d.time ? ' เวลา ' + d.time : '');
+  }
+  function sendEvent(ev) {
+    var btn = $('e-save'); btn.disabled = true;
+    var req = editId ? { action: 'updateEvent', id: editId, e: ev, today: state.date } : { action: 'addEvent', e: ev, today: state.date };
+    return api(req).then(function (j) {
+      if (j.duplicate) {
+        btn.disabled = false;
+        if (window.confirm('มีรายการนี้อยู่แล้ว:\n' + dupText(j.duplicate) + '\n\nต้องการบันทึกซ้ำหรือไม่?')) { ev.force = true; return sendEvent(ev); }
+        toast('ไม่ได้บันทึกซ้ำ'); return;
+      }
+      var wasEdit = !!editId; resetEventForm();
+      renderEvents(j.events); toast(wasEdit ? 'แก้ไขแล้ว' : 'ลงปฏิทินแล้ว');
+    }).catch(function (e) { toast(e.message); }).then(function () { btn.disabled = false; });
+  }
   $('e-save').addEventListener('click', function () {
     var ev = { date: $('e-date').value, time: $('e-time').value, type: $('e-type').value, text: $('e-text').value.trim(), yearly: $('e-yearly').checked };
     if (!ev.date || !ev.text) { toast('กรอกวันที่และรายละเอียดให้ครบ'); return; }
-    var btn = $('e-save'); btn.disabled = true;
-    api({ action: 'addEvent', e: ev, today: state.date }).then(function (j) {
-      $('e-text').value = ''; $('e-time').value = ''; $('e-yearly').checked = false;
-      renderEvents(j.events); toast('ลงปฏิทินแล้ว');
-    }).catch(function (e) { toast(e.message); }).then(function () { btn.disabled = false; });
+    sendEvent(ev);
+  });
+  $('e-cancel').addEventListener('click', resetEventForm);
+  $('e-list').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    var id = b.dataset.edit || b.dataset.del;
+    var ev = state.events.filter(function (x) { return x.id === id; })[0]; if (!ev) return;
+    if (b.dataset.edit) {
+      editId = id;
+      $('e-type').value = ev.type; $('e-date').value = ev.orig || ev.date; $('e-time').value = ev.time || '';
+      $('e-text').value = ev.text; $('e-yearly').checked = !!ev.yearly;
+      $('e-title').textContent = 'แก้ไขกิจกรรม'; $('e-save').textContent = 'บันทึกการแก้ไข'; $('e-cancel').style.display = '';
+      window.scrollTo(0, 0); $('e-text').focus();
+    } else {
+      if (!window.confirm('ลบ ' + dupText(ev) + ' ?\n(ลบออกจากตารางงานด้วย)')) return;
+      b.disabled = true;
+      api({ action: 'deleteEvent', id: id, today: state.date }).then(function (j) {
+        if (editId === id) resetEventForm();
+        renderEvents(j.events); toast('ลบแล้ว');
+      }).catch(function (er) { toast(er.message); b.disabled = false; });
+    }
   });
 
   $('s-save').addEventListener('click', function () {
