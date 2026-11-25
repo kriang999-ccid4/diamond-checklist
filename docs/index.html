@@ -508,7 +508,7 @@
   <section class="view" id="v-settings">
     <div class="card">
       <h2>โปรไฟล์และเป้าหมาย</h2>
-      <p class="muted" style="margin:0 0 12px">เก็บไว้ในเครื่องนี้เท่านั้น ไม่ขึ้น GitHub สมาชิกในกลุ่มใช้แอปเดียวกันแล้วตั้งของตัวเองได้</p>
+      <p class="muted" style="margin:0 0 12px">บันทึกครั้งเดียว เก็บใน Google Sheet ของคุณ ทุกเครื่องที่เชื่อมต่อแล้วจะดึงรูปและชื่อไปใช้เอง (ไม่ขึ้น GitHub)</p>
       <div class="prof-row">
         <span class="avatar"><img id="s-avatar-img" src="" alt="รูปโปรไฟล์"></span>
         <div style="flex:1">
@@ -542,12 +542,16 @@
     </div>
     <div class="card warn">
       <h2>เชื่อมต่อครั้งแรก</h2>
-      <p class="muted" style="margin:0">ใส่ลิงก์เว็บแอปจาก Apps Script และรหัสลับที่ได้จากการรัน setup() ข้อมูลนี้เก็บไว้ในเครื่องนี้เท่านั้น ไม่อยู่บน GitHub</p>
+      <p class="muted" style="margin:0">เครื่องใหม่: วาง <b>รหัสเชื่อมต่อ</b> ช่องเดียวจบ (คัดลอกจากเครื่องที่ใช้อยู่ ปุ่มด้านล่าง) หรือใส่ลิงก์เว็บแอปกับรหัสลับแยก 2 ช่อง ข้อมูลนี้เก็บในเครื่องนี้เท่านั้น ไม่อยู่บน GitHub</p>
     </div>
     <div class="card">
+      <label class="f"><span>รหัสเชื่อมต่อ (ขึ้นต้น DC1.)</span><input id="s-code" placeholder="วางรหัสเชื่อมต่อที่นี่" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+      <p class="muted" style="margin:10px 0 6px">หรือกรอกแยก 2 ช่อง</p>
       <label class="f"><span>ลิงก์เว็บแอป (ลงท้าย /exec)</span><input id="s-url" placeholder="https://script.google.com/macros/s/…/exec"></label>
       <label class="f" style="margin-top:10px"><span>รหัสลับ</span><input id="s-key" type="password" autocomplete="off"></label>
       <button class="primary" id="s-save" type="button" style="margin-top:12px">บันทึกและทดสอบ</button>
+      <button id="s-copy" type="button" style="margin-top:10px;width:100%">คัดลอกรหัสเชื่อมต่อไปใช้เครื่องอื่น</button>
+      <textarea id="s-code-out" readonly style="display:none;width:100%;margin-top:8px;font-size:12px" rows="3"></textarea>
       <button id="s-forget" type="button" style="margin-top:10px;width:100%">ลบการเชื่อมต่อจากเครื่องนี้</button>
     </div>
   </section>
@@ -677,6 +681,44 @@
     return fetch(c.url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), redirect: 'follow' })
       .then(function (r) { if (!r.ok) throw new Error('เชื่อมต่อไม่ได้ (' + r.status + ')'); return r.json(); })
       .then(function (j) { if (!j.ok) throw new Error(j.error || 'เกิดข้อผิดพลาด'); return j; });
+  }
+
+  // ---------- รหัสเชื่อมต่อช่องเดียว (ลิงก์ + รหัสลับ) ----------
+  function encodeConn(u, k) { return 'DC1.' + btoa(JSON.stringify({ u: u, k: k })).replace(/=+$/, ''); }
+  function decodeConn(s) {
+    try {
+      var b = String(s).replace(/\s+/g, '').replace(/^DC1\./, '');
+      while (b.length % 4) b += '=';
+      var o = JSON.parse(atob(b));
+      if (o && /^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(o.u) && o.k) return o;
+    } catch (e) { }
+    return null;
+  }
+
+  // ---------- โปรไฟล์ใช้ร่วมกันทุกเครื่อง (เก็บใน Google Sheet) ----------
+  var PROF_KEYS = { name: 'dc_name', goal: 'dc_goal', deadline: 'dc_deadline', avatar: 'dc_avatar', pin: 'dc_pin' };
+  function localProfile() { var o = {}; Object.keys(PROF_KEYS).forEach(function (k) { o[k] = store(PROF_KEYS[k]) || ''; }); return o; }
+  function pushProfile() {
+    return api({ action: 'saveProfile', p: localProfile() }).then(function (j) {
+      if (j.updated) store('dc_prof_upd', String(j.updated));
+      return j;
+    }).catch(function (e) {
+      if (/ไม่รู้จักคำสั่ง/.test(e.message)) throw new Error('หลังบ้านยังเป็นเวอร์ชันเก่า (อัปเดต Code.gs แล้ว Deploy New version)');
+      throw e;
+    });
+  }
+  var profSynced = false;
+  function syncProfile(sp) {
+    var localUpd = Number(store('dc_prof_upd')) || 0;
+    if (sp && sp.updated && sp.updated >= localUpd) {
+      if (sp.updated === localUpd) return;
+      Object.keys(PROF_KEYS).forEach(function (k) { store(PROF_KEYS[k], sp[k] || null); });
+      store('dc_prof_upd', String(sp.updated));
+      applyProfile();
+    } else if (!profSynced) {
+      var lp = localProfile();
+      if (lp.name || lp.avatar || lp.pin || lp.goal || lp.deadline) { profSynced = true; pushProfile().catch(function () { }); }
+    }
   }
 
   // ---------- UI ทั่วไป ----------
@@ -927,7 +969,7 @@
     api({ action: 'load', date: state.date }).then(function (j) {
       if (seq !== state.loadSeq) return; // ผู้ใช้เปลี่ยนวันไปแล้ว
       state.tasks = (j.tasks && j.tasks.length) ? j.tasks : defaultTasks(state.date);
-      fillDay(j.day); renderProspects(j.prospects); renderEvents(j.events); renderGoal(j.goal);
+      fillDay(j.day); renderProspects(j.prospects); renderEvents(j.events); renderGoal(j.goal); syncProfile(j.profile);
       $('stat-streak').textContent = j.streak ? 'ทำได้ดีติดกัน ' + j.streak + ' วัน' : '';
       $('saved-at').textContent = '';
       if ($('v-dash').classList.contains('on')) loadDash();
@@ -1216,8 +1258,14 @@
       store('dc_name', $('s-name').value.trim() || null);
       store('dc_goal', $('s-goal').value.trim() || null);
       store('dc_deadline', $('s-deadline').value || null);
-      pending = {}; applyProfile(); toast('บันทึกโปรไฟล์แล้ว');
-    } catch (er) { toast('บันทึกไม่ได้: พื้นที่ในเครื่องไม่พอ ลองใช้รูปที่เล็กลง'); }
+      store('dc_prof_upd', String(Date.now()));
+      pending = {}; applyProfile();
+    } catch (er) { toast('บันทึกไม่ได้: พื้นที่ในเครื่องไม่พอ ลองใช้รูปที่เล็กลง'); return; }
+    if (!cfg().url) { toast('บันทึกในเครื่องนี้แล้ว เชื่อมต่อ Google Sheet เมื่อไหร่จะส่งขึ้นให้เอง'); return; }
+    var btn = $('s-prof-save'); btn.disabled = true;
+    pushProfile().then(function () { toast('บันทึกโปรไฟล์แล้ว ทุกเครื่องจะเห็นรูปนี้'); })
+      .catch(function (e) { toast('บันทึกในเครื่องนี้แล้ว แต่ส่งขึ้น Google Sheet ไม่ได้: ' + e.message); })
+      .then(function () { btn.disabled = false; });
   });
   $('prev').addEventListener('click', function () { state.date = shift(state.date, -1); load(); });
   $('next').addEventListener('click', function () { state.date = shift(state.date, 1); load(); });
@@ -1338,11 +1386,27 @@
 
   $('s-save').addEventListener('click', function () {
     var url = $('s-url').value.trim(), key = $('s-key').value.trim();
+    var code = $('s-code').value.trim() || (/^DC1\./.test(url) ? url : '');
+    if (code) {
+      var c = decodeConn(code);
+      if (!c) { toast('รหัสเชื่อมต่อไม่ถูกต้อง ลองคัดลอกใหม่ทั้งบรรทัด'); return; }
+      url = c.u; key = c.k; $('s-url').value = url; $('s-key').value = key; $('s-code').value = '';
+    }
     if (!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(url)) { toast('ลิงก์ต้องขึ้นต้น script.google.com และลงท้าย /exec'); return; }
     if (!key) { toast('กรุณาใส่รหัสลับ'); return; }
     store('dc_url', url); store('dc_key', key);
     api({ action: 'load', date: state.date }).then(function () { toast('เชื่อมต่อสำเร็จ'); show('v-today'); load(); })
       .catch(function (e) { toast(e.message); });
+  });
+  $('s-copy').addEventListener('click', function () {
+    var c = cfg();
+    if (!c.url || !c.key) { toast('เครื่องนี้ยังไม่ได้เชื่อมต่อ'); return; }
+    var code = encodeConn(c.url, c.key), out = $('s-code-out');
+    out.value = code; out.style.display = '';
+    var done = function () { toast('คัดลอกแล้ว ส่งให้ตัวเอง (เช่น LINE Keep) แล้ววางในเครื่องใหม่'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(code).then(done, function () { out.select(); toast('กดค้างที่กล่องด้านล่างแล้วเลือก คัดลอก'); });
+    } else { out.select(); toast('กดค้างที่กล่องด้านล่างแล้วเลือก คัดลอก'); }
   });
   $('s-forget').addEventListener('click', function () { store('dc_url', null); store('dc_key', null); $('s-url').value = ''; $('s-key').value = ''; toast('ลบการเชื่อมต่อแล้ว'); });
 
