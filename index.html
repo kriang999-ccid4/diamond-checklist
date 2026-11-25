@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#e6f3fe">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Diamond">
+<title>Diamond Checklist</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0d4ea6; --blue: #1a73d9; --sky: #2b9af3; --sky-soft: #e1f1fe; --glow: 91,184,255;
+    --bg: #f1f7fd; --card: #ffffff; --ink: #10284a; --muted: #5f7593; --line: #dbe8f5; --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink);
+    font-family: 'Noto Sans Thai', system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 16px; }
+  body { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .wrap { max-width: 640px; margin: 0 auto; }
+
+  /* ---------- หัวแอป ---------- */
+  header { background: linear-gradient(160deg, #ffffff 0%, #e6f3fe 55%, #c9e5fc 100%); color: var(--navy);
+    border-bottom: 1px solid #cfe3f7; padding: calc(14px + env(safe-area-inset-top)) 16px 16px; text-align: center; }
+  header .top { position: relative; }
+  header h1 { font-size: 18px; margin: 0; font-weight: 700; letter-spacing: .3px; }
+  header .sub { color: #3f6a9e; font-size: 13px; margin-top: 2px; }
+  .gear { position: absolute; right: 0; top: 0; background: #ffffffcc; border: 1px solid #b8d6f3; color: var(--navy);
+    border-radius: 10px; padding: 6px 10px; font: inherit; font-size: 13px; }
+
+  .goal { margin: 14px auto 0; max-width: 420px; background: #ffffffe6; border: 1px solid #cfe3f7; border-radius: 18px;
+    padding: 16px 14px 14px; display: flex; flex-direction: column; align-items: center; animation: frameGlow 3.2s ease-in-out infinite; }
+  .prof-row { display: flex; align-items: center; gap: 14px; }
+  .filebtn { display: inline-block; background: var(--sky-soft); color: var(--navy); border-radius: 10px; padding: 8px 14px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .filebtn input { display: none; }
+  .gauges { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; text-align: center; }
+  .gauges .gl { font-size: 12.5px; font-weight: 600; color: var(--navy); margin-top: -4px; }
+  .gauges .gs { font-size: 11.5px; color: var(--muted); }
+  .legend { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; font-size: 13px; margin-top: 8px; }
+  .legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; background: var(--c); vertical-align: -1px; }
+  .needle { transition: transform 1.1s cubic-bezier(.2,.9,.3,1.2); }
+  .duo { display: flex; align-items: center; justify-content: center; gap: 14px; }
+  .avatar { width: 88px; height: 88px; border-radius: 50%; padding: 3px; flex: none;
+    background: linear-gradient(140deg, #ffffff, #8ccbff 45%, #1a73d9); animation: pinGlow 3.2s ease-in-out infinite; }
+  .avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; border: 2px solid #fff; background: #dcecfb; }
+  .path { display: flex; gap: 5px; align-items: center; }
+  .path i { width: 6px; height: 6px; border-radius: 50%; background: #5bb8ff; opacity: .25; animation: step 1.8s ease-in-out infinite; }
+  .path i:nth-child(2) { animation-delay: .3s; } .path i:nth-child(3) { animation-delay: .6s; }
+  @keyframes step { 0%, 100% { opacity: .25; transform: scale(.85); } 40% { opacity: 1; transform: scale(1.15); } }
+  .pin { position: relative; width: 64px; height: 84px; border-radius: 10px; overflow: hidden; animation: pinGlow 3.2s ease-in-out infinite; }
+  .pin img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .pin::after { content: ''; position: absolute; top: -20%; left: -80%; width: 50%; height: 140%;
+    background: linear-gradient(100deg, transparent, rgba(255,255,255,.8), transparent);
+    transform: skewX(-18deg); animation: pinShine 6.4s ease-in-out infinite; }
+  .goal .owner { margin-top: 10px; font-size: 14px; font-weight: 600; color: #2a5a93; }
+  .goal .n { font-size: 21px; font-weight: 700; color: var(--navy); letter-spacing: .3px; line-height: 1.25; }
+  .goal .d { font-size: 12.5px; color: #3f6a9e; margin-top: 2px; }
+
+  .quote { margin: 12px auto 0; max-width: 520px; min-height: 52px; transition: opacity .6s ease; }
+  .quote.fade { opacity: 0; }
+  .quote .th, .quote .en { animation: textGlow 3.2s ease-in-out infinite; }
+  .quote .th { font-size: 15px; font-weight: 600; color: var(--navy); line-height: 1.45; }
+  .quote .en { font-size: 13px; font-style: italic; color: #2a5a93; margin-top: 2px; }
+
+  @keyframes pinGlow {
+    0%, 100% { box-shadow: 0 2px 6px rgba(13,78,166,.18), 0 0 0 0 rgba(var(--glow),0); }
+    50% { box-shadow: 0 2px 6px rgba(13,78,166,.18), 0 0 18px 5px rgba(var(--glow),.6); }
+  }
+  @keyframes frameGlow {
+    0%, 100% { box-shadow: 0 1px 4px rgba(13,78,166,.06), 0 0 0 0 rgba(var(--glow),0); border-color: #cfe3f7; }
+    50% { box-shadow: 0 1px 4px rgba(13,78,166,.06), 0 0 22px 2px rgba(var(--glow),.35); border-color: #9fd0fb; }
+  }
+  @keyframes textGlow {
+    0%, 100% { text-shadow: 0 0 0 rgba(var(--glow),0); }
+    50% { text-shadow: 0 0 10px rgba(var(--glow),.7); }
+  }
+  @keyframes pinShine { 0%, 70% { left: -80%; } 85%, 100% { left: 140%; } }
+
+  .progress { margin: 14px auto 0; max-width: 420px; background: #d3e8fb; height: 10px; border-radius: 99px; overflow: hidden; }
+  .progress > div { height: 100%; background: linear-gradient(90deg, #5bb8ff, #1a73d9); width: 0; transition: width .3s; }
+  .stats { display: flex; justify-content: center; gap: 14px; margin-top: 8px; font-size: 13px; color: #3f6a9e; }
+
+  /* ---------- เนื้อหา ---------- */
+  main { max-width: 640px; margin: 0 auto; padding: 14px; }
+  .card { background: var(--card); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px;
+    border: 1px solid var(--line); box-shadow: 0 1px 3px rgba(13,78,166,.05); }
+  .card h2 { font-size: 15px; margin: 0 0 10px; font-weight: 600; }
+  .card-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .card-head h2 { margin: 0; }
+  .datebar { display: flex; align-items: center; gap: 8px; }
+  .datebar input { flex: 1; }
+  .datebar button { min-width: 44px; }
+
+  .focus { background: linear-gradient(180deg, #f5fbff, #eaf5ff); border-color: #c4e0fa; }
+  .focus .phase { font-size: 12.5px; color: #2a5a93; font-weight: 600; }
+  .focus .week { font-size: 15.5px; font-weight: 600; margin: 6px 0 2px; color: var(--navy); line-height: 1.45; }
+  .focus .pass { font-size: 13px; color: var(--muted); }
+  .focus ul { margin: 10px 0 0; padding-left: 18px; font-size: 13.5px; color: var(--ink); }
+  .focus li { margin: 3px 0; }
+
+  .task { display: flex; gap: 12px; align-items: flex-start; padding: 11px 0; border-top: 1px solid var(--line); cursor: pointer; }
+  .task:first-child { border-top: 0; }
+  .task input { width: 24px; height: 24px; margin: 1px 0 0; accent-color: var(--blue); flex: none; }
+  .task .t { font-weight: 500; line-height: 1.4; }
+  .task .h { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .task.done .t { color: var(--muted); text-decoration: line-through; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  label.f { display: block; font-size: 13px; color: var(--muted); }
+  label.f span { display: block; margin-bottom: 4px; }
+  input, select, textarea { width: 100%; font: inherit; font-size: 16px; padding: 10px 12px; border: 1px solid var(--line);
+    border-radius: 10px; background: #fff; color: var(--ink); }
+  input:focus, select:focus, textarea:focus { outline: 2px solid #9fd0fb; border-color: #5bb8ff; }
+  input[type=checkbox] { width: auto; }
+  .task input[type=checkbox] { width: 24px; height: 24px; }
+  textarea { min-height: 80px; resize: vertical; }
+  button { font: inherit; border: 0; border-radius: 10px; padding: 11px 14px; background: var(--sky-soft); color: var(--navy); cursor: pointer; }
+  button.primary { background: linear-gradient(180deg, #2b9af3, #1565c0); color: #fff; width: 100%; font-weight: 600; padding: 13px;
+    box-shadow: 0 4px 12px rgba(21,101,192,.22); }
+  button.small { padding: 6px 12px; font-size: 13.5px; }
+  button.ghost { background: #fff; border: 1px solid #b8d6f3; }
+  button:disabled { opacity: .6; }
+  .check { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink); margin-top: 10px; }
+
+  .list .item { padding: 9px 0; border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 10px; }
+  .list .item:first-child { border-top: 0; }
+  .list .meta { color: var(--muted); font-size: 13px; }
+  .pill { font-size: 12px; padding: 2px 8px; border-radius: 99px; background: var(--sky-soft); color: var(--navy); white-space: nowrap; align-self: center; }
+  .pill.bd { background: #fff1e6; color: #b45309; }
+  .pill.tr { background: #e8f8ef; color: #15803d; }
+  .day-h { font-size: 13px; color: var(--muted); margin: 10px 0 2px; font-weight: 600; }
+  .day-h:first-child { margin-top: 0; }
+  .muted { color: var(--muted); font-size: 13px; }
+
+  nav { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; border-top: 1px solid var(--line); display: flex;
+    justify-content: center; padding-bottom: env(safe-area-inset-bottom); }
+  nav .in { display: flex; width: 100%; max-width: 640px; }
+  nav button { flex: 1; background: transparent; border-radius: 0; padding: 14px 0; color: var(--muted); font-weight: 500; }
+  nav button.on { color: var(--navy); box-shadow: inset 0 3px 0 var(--sky); }
+  .view { display: none; }
+  .view.on { display: block; }
+  #toast { position: fixed; left: 50%; bottom: calc(90px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--ink);
+    color: #fff; padding: 10px 16px; border-radius: 10px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; max-width: 90vw; text-align: center; }
+  #toast.show { opacity: .95; }
+  .warn { background: #fff7e8; border-color: #f1d9a8; }
+
+  /* แท็บเล็ตแนวนอน/คอม: เป้าหมายอยู่ข้างเช็กลิสต์ */
+  @media (min-width: 900px) {
+    main { max-width: 1000px; }
+    .wrap { max-width: 1000px; }
+    #v-today.on { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 0 16px; align-items: start; }
+    #v-today .side { grid-column: 2; grid-row: 1 / span 2; position: sticky; top: 14px; }
+    #v-today .mainc, #v-today .datecard { grid-column: 1; }
+    #v-today .datecard { grid-row: 1; }
+    #v-prospects, #v-cal, #v-settings { max-width: 640px; margin: 0 auto; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pin, .pin::after, .goal, .avatar, .path i, .quote .th, .quote .en { animation: none; }
+    .quote { transition: none; }
+  }
+
+  /* ---------- v3: ตัวแก้รายการเช็กลิสต์ ---------- */
+  .ed-row { display: grid; grid-template-columns: 1fr 104px 34px 34px 34px; gap: 6px; align-items: center; padding: 6px 0; border-top: 1px solid var(--line); }
+  .ed-row:first-child { border-top: 0; }
+  .ed-row input { padding: 8px 10px; font-size: 15px; }
+  .ed-row button { padding: 8px 0; font-size: 14px; }
+  .ed-row button.del { background: #fdecec; color: #b42318; }
+  .ed-foot { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; align-items: center; }
+  .ed-foot select { width: auto; flex: 1; min-width: 180px; }
+  .group-h { font-size: 13px; font-weight: 700; color: var(--navy); margin: 12px 0 6px; letter-spacing: .2px; }
+  .group-h:first-of-type { margin-top: 0; }
+  .group-h small { font-weight: 500; color: var(--muted); }
+
+  /* ---------- v3: Dashboard ---------- */
+  .seg { display: flex; background: var(--sky-soft); border-radius: 12px; padding: 4px; gap: 4px; }
+  .seg button { flex: 1; background: transparent; padding: 8px 0; font-weight: 600; color: #3f6a9e; }
+  .seg button.on { background: #fff; color: var(--navy); box-shadow: 0 1px 4px rgba(13,78,166,.15); }
+  .dash-label { text-align: center; margin-top: 10px; font-size: 14px; color: #2a5a93; font-weight: 600; }
+  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .kpi { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 12px 10px; text-align: center; }
+  .kpi .v { font-size: 26px; font-weight: 700; color: var(--navy); line-height: 1.1; }
+  .kpi .l { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+  .kpi .s { font-size: 12px; color: #2a5a93; margin-top: 2px; }
+  .groups { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  .gcard h3 { margin: 0 0 8px; font-size: 15px; display: flex; justify-content: space-between; align-items: baseline; }
+  .gcard h3 .tag { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 99px; }
+  .m { padding: 7px 0; }
+  .m .row1 { display: flex; justify-content: space-between; font-size: 14px; gap: 8px; }
+  .m .row1 b { font-weight: 600; }
+  .m .bar { height: 8px; background: #e7f0fa; border-radius: 99px; margin-top: 5px; overflow: hidden; }
+  .m .bar > div { height: 100%; border-radius: 99px; }
+  .m .delta { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .lv-low { background: #f59e0b; } .lv-mid { background: #2b9af3; } .lv-ok { background: #16a34a; }
+  .tag.lv-low { background: #fff4e0; color: #a16207; } .tag.lv-mid { background: var(--sky-soft); color: var(--navy); } .tag.lv-ok { background: #e7f7ee; color: #15803d; }
+  .funnel .st { display: grid; grid-template-columns: 112px 1fr 46px; gap: 8px; align-items: center; margin: 6px 0; font-size: 13.5px; }
+  .funnel .st .b { height: 22px; background: linear-gradient(90deg, #5bb8ff, #1a73d9); border-radius: 6px; min-width: 3px; }
+  .funnel .st .c { text-align: right; font-weight: 600; color: var(--navy); }
+  .funnel .conv { font-size: 12px; color: var(--muted); margin: -2px 0 2px 120px; }
+  .rec { border-left: 4px solid var(--sky); padding: 8px 0 8px 12px; margin: 10px 0; }
+  .rec.high { border-color: #f59e0b; } .rec.good { border-color: #16a34a; }
+  .rec .t { font-weight: 600; font-size: 14.5px; }
+  .rec .x { font-size: 13.5px; color: #33506f; margin-top: 3px; line-height: 1.5; }
+  .rec .k { font-size: 11.5px; font-weight: 700; letter-spacing: .3px; color: var(--muted); }
+  .chart-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .chart-top select { width: auto; padding: 6px 10px; font-size: 14px; }
+  svg text { font-family: inherit; }
+  @media (min-width: 700px) { .groups { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 900px) { #v-dash { max-width: 1000px; margin: 0 auto; } #v-dash .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="top">
+      <h1>Diamond Checklist</h1>
+      <div class="sub" id="today-label">กำลังโหลด…</div>
+      <button class="gear" id="btn-settings" type="button">ตั้งค่า</button>
+    </div>
+    <div class="goal">
+      <div class="duo">
+        <span class="avatar"><img id="h-avatar" src="" alt="รูปโปรไฟล์"></span>
+        <span class="path" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="pin"><img id="h-pin" src="pin-founders-diamond.jpg" alt="Pin เป้าหมาย"></span>
+      </div>
+      <div class="owner" id="h-name">ชื่อของคุณ</div>
+      <div class="n" id="h-goal">Founders Diamond</div>
+      <div class="d" id="goal-days"></div>
+    </div>
+    <div class="quote" id="quote"><div class="th"></div><div class="en"></div></div>
+    <div class="progress"><div id="bar"></div></div>
+    <div class="stats"><span id="stat-done">0/0 งาน</span><span id="stat-streak"></span></div>
+  </div>
+</header>
+
+<main>
+  <!-- วันนี้ -->
+  <section class="view on" id="v-today">
+    <div class="card datecard">
+      <div class="datebar">
+        <button type="button" id="prev" aria-label="วันก่อนหน้า">‹</button>
+        <input type="date" id="date">
+        <button type="button" id="next" aria-label="วันถัดไป">›</button>
+      </div>
+    </div>
+    <div class="side">
+      <div class="card focus">
+        <div class="phase" id="g-phase">เป้าหมายช่วงนี้</div>
+        <div class="muted" style="margin-top:8px" id="g-weeklabel">เป้าหมายสัปดาห์นี้</div>
+        <div class="week" id="g-week">–</div>
+        <div class="pass" id="g-pass"></div>
+        <ul id="g-phasegoals"></ul>
+      </div>
+      <div class="card" id="today-events-card" style="display:none">
+        <h2>วันนี้มี</h2>
+        <div class="list" id="today-events"></div>
+      </div>
+    </div>
+    <div class="mainc">
+      <div class="card">
+        <div class="card-head">
+          <h2 id="tasks-title">เช็กลิสต์วันนี้</h2>
+          <div style="display:flex;gap:6px">
+            <button type="button" class="small ghost" id="edit">แก้ไขรายการ</button>
+            <button type="button" class="small ghost" id="clear">ล้าง</button>
+          </div>
+        </div>
+        <div id="tasks"></div>
+        <div id="editor" style="display:none">
+          <div id="ed-list"></div>
+          <button type="button" class="small ghost" id="ed-add" style="margin-top:8px">+ เพิ่มงาน</button>
+          <div class="ed-foot">
+            <select id="ed-scope">
+              <option value="dow">ใช้กับวันนี้ของทุกสัปดาห์</option>
+              <option value="weekdays">ใช้กับจันทร์–ศุกร์ทั้งหมด</option>
+              <option value="weekend">ใช้กับเสาร์–อาทิตย์</option>
+              <option value="all">ใช้กับทุกวัน</option>
+            </select>
+          </div>
+          <div class="ed-foot">
+            <button type="button" class="small" id="ed-save" style="background:var(--blue);color:#fff">บันทึกรายการ</button>
+            <button type="button" class="small ghost" id="ed-cancel">ยกเลิก</button>
+            <button type="button" class="small ghost" id="ed-reset">คืนค่าเริ่มต้น</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>ตัวเลขธุรกิจวันนี้ (3S + 1M)</h2>
+        <div class="group-h">Sponsor <small>สร้างทีม</small></div>
+        <div class="grid">
+          <label class="f"><span>คนใหม่ที่คุย (New PP)</span><input inputmode="numeric" data-num="newpp"></label>
+          <label class="f"><span>นำเสนอแผน (ครั้ง)</span><input inputmode="numeric" data-num="presentations"></label>
+          <label class="f"><span>คนเข้าระบบใหม่</span><input inputmode="numeric" data-num="joins"></label>
+          <label class="f"><span>สายงานใหม่ (frontline)</span><input inputmode="numeric" data-num="legs"></label>
+        </div>
+        <div class="group-h">Selling <small>ขายสินค้า</small></div>
+        <div class="grid">
+          <label class="f"><span>เคสขาย</span><input inputmode="numeric" data-num="cases"></label>
+          <label class="f"><span>BV</span><input inputmode="decimal" data-num="bv"></label>
+        </div>
+        <div class="group-h">Service <small>ดูแลลูกค้าและทีม</small></div>
+        <div class="grid">
+          <label class="f"><span>ลูกค้าที่ดูแล/ติดตาม</span><input inputmode="numeric" data-num="service"></label>
+          <label class="f"><span>ABO ที่ติดตาม</span><input inputmode="numeric" data-num="abo"></label>
+        </div>
+        <div class="group-h">Meeting <small>เข้าระบบประชุม</small></div>
+        <div class="grid">
+          <label class="f"><span>เข้าประชุม/อบรม (ครั้ง)</span><input inputmode="numeric" data-num="meetings"></label>
+          <label class="f"><span>พาคนเข้าประชุม (คน)</span><input inputmode="numeric" data-num="guests"></label>
+        </div>
+        <div class="group-h">ตัวเอง</div>
+        <div class="grid">
+          <label class="f"><span>พัฒนาตัวเอง (นาที)</span><input inputmode="numeric" data-num="selfdev"></label>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <h2>โน้ตประจำวัน</h2>
+          <button type="button" class="small ghost" id="save-note">บันทึกโน้ต</button>
+        </div>
+        <textarea id="note" placeholder="ไอเดียจาก Link a day, คนที่คุยวันนี้, สิ่งที่ต้องทำต่อ"></textarea>
+        <button type="button" class="small ghost" id="to-cal" style="margin-top:10px">+ เพิ่มกิจกรรม / วันเกิด / วันสำคัญ</button>
+      </div>
+      <button class="primary" id="save" type="button">บันทึกลง Google Sheet</button>
+      <p class="muted" id="saved-at" style="text-align:center"></p>
+    </div>
+  </section>
+
+  <!-- Dashboard -->
+  <section class="view" id="v-dash">
+    <div class="card">
+      <div class="seg" id="seg">
+        <button type="button" data-p="day">วัน</button>
+        <button type="button" data-p="week" class="on">สัปดาห์</button>
+        <button type="button" data-p="month">เดือน</button>
+        <button type="button" data-p="year">ปี</button>
+      </div>
+      <div class="dash-label" id="d-label">–</div>
+    </div>
+    <div class="kpis" style="margin-bottom:12px">
+      <div class="kpi"><div class="v" id="k-joins">0</div><div class="l">คนเข้าระบบ</div><div class="s" id="k-joins-s"></div></div>
+      <div class="kpi"><div class="v" id="k-legs">0</div><div class="l">สายงานใหม่</div><div class="s" id="k-legs-s"></div></div>
+      <div class="kpi"><div class="v" id="k-pct">0%</div><div class="l">ทำเช็กลิสต์</div><div class="s" id="k-pct-s"></div></div>
+    </div>
+    <div class="two">
+      <div class="card" style="text-align:center">
+        <h2 style="text-align:left">คะแนนการเติบโตรวม</h2>
+        <div id="g-main"></div>
+        <div class="muted">Sponsor 40% · Selling 20% · Service 20% · Meeting 20% เทียบเป้า</div>
+      </div>
+      <div class="card">
+        <h2>สัดส่วนกิจกรรม 3S + 1M</h2>
+        <div id="pie"></div>
+        <div class="legend" id="pie-legend"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>เกจรายหมวด</h2>
+      <div class="gauges" id="g-mini"></div>
+    </div>
+    <div class="card">
+      <h2>คำแนะนำเพื่อโตเร็วและมั่นคง</h2>
+      <div class="muted" id="rec-basis"></div>
+      <div id="recs"></div>
+    </div>
+    <div class="card">
+      <h2>เปรียบเทียบกับเป้าและช่วงก่อน</h2>
+      <div id="cmp"></div>
+    </div>
+    <div class="groups" id="groups"></div>
+    <div class="two" style="margin-top:12px">
+      <div class="card">
+        <h2>กรวยสร้างทีม (Sponsor)</h2>
+        <div class="funnel" id="funnel"></div>
+      </div>
+      <div class="card">
+        <div class="chart-top">
+          <h2 style="margin:0">แนวโน้ม 8 ช่วงล่าสุด</h2>
+          <select id="chart-metric">
+            <option value="presentations">นำเสนอแผน</option>
+            <option value="joins">คนเข้าระบบ</option>
+            <option value="newpp">คนใหม่ที่คุย</option>
+            <option value="cases">เคสขาย</option>
+            <option value="bv">BV</option>
+            <option value="service">ลูกค้าที่ดูแล</option>
+            <option value="meetings">เข้าประชุม</option>
+            <option value="pct">% เช็กลิสต์</option>
+          </select>
+        </div>
+        <div id="chart"></div>
+      </div>
+    </div>
+    <p class="muted" style="text-align:center">เป้าตัวเลขแก้ได้ในชีต "เป้าตัวเลขรายสัปดาห์" ของไฟล์แผน 1 ปี 1 ล้าน</p>
+  </section>
+
+  <!-- ผู้มุ่งหวัง -->
+  <section class="view" id="v-prospects">
+    <div class="card">
+      <h2>เพิ่มรายชื่อผู้มุ่งหวัง</h2>
+      <label class="f"><span>ชื่อ - นามสกุล</span><input id="p-name"></label>
+      <label class="f" style="margin-top:10px"><span>เรื่องที่มุ่งหวัง</span>
+        <select id="p-topic">
+          <option>กรองน้ำ</option><option>DoubleX / I Blend</option><option>กรองอากาศ</option>
+          <option>Cookware</option><option>สปอนเซอร์</option><option>อื่นๆ</option>
+        </select>
+      </label>
+      <div class="grid" style="margin-top:10px">
+        <label class="f"><span>ความเป็นมิตร (0-10)</span><input inputmode="numeric" id="p-s1"></label>
+        <label class="f"><span>สายสัมพันธ์ (0-5)</span><input inputmode="numeric" id="p-s2"></label>
+        <label class="f"><span>ศักยภาพ (0-5)</span><input inputmode="numeric" id="p-s3"></label>
+        <label class="f"><span>ความต้องการ NEED (0-5)</span><input inputmode="numeric" id="p-s4"></label>
+        <label class="f"><span>อาชีพ</span><input id="p-job"></label>
+        <label class="f"><span>อายุ</span><input inputmode="numeric" id="p-age"></label>
+        <label class="f"><span>อำเภอ</span><input id="p-district"></label>
+        <label class="f"><span>จังหวัด</span><input id="p-province"></label>
+      </div>
+      <button class="primary" id="p-save" type="button" style="margin-top:12px">เพิ่มลงรายชื่อ</button>
+    </div>
+    <div class="card">
+      <h2>20 อันดับคะแนนสูงสุด (ติดตามก่อน)</h2>
+      <div class="list" id="p-list"><p class="muted">ยังไม่มีข้อมูล</p></div>
+    </div>
+  </section>
+
+  <!-- ปฏิทิน -->
+  <section class="view" id="v-cal">
+    <div class="card">
+      <h2>เพิ่มกิจกรรม / วันสำคัญ</h2>
+      <label class="f"><span>ประเภท</span>
+        <select id="e-type">
+          <option>นัดหมาย</option><option>อบรม/สัมมนา</option><option>วันเกิด Downline</option>
+          <option>วันเกิด Upline</option><option>วันเกิด Prospect</option><option>วันสำคัญ</option>
+        </select>
+      </label>
+      <div class="grid" style="margin-top:10px">
+        <label class="f"><span>วันที่</span><input type="date" id="e-date"></label>
+        <label class="f"><span>เวลา (ไม่ใส่ก็ได้)</span><input type="time" id="e-time"></label>
+      </div>
+      <label class="f" style="margin-top:10px"><span>รายละเอียด</span><input id="e-text" placeholder="เช่น อบรม Amway Cookware ที่ศูนย์แอมเวย์"></label>
+      <label class="check"><input type="checkbox" id="e-yearly"> เตือนซ้ำทุกปี (วันเกิดจะเปิดให้อัตโนมัติ)</label>
+      <button class="primary" id="e-save" type="button" style="margin-top:12px">ลงปฏิทิน</button>
+      <p class="muted">ลงในตารางงานเกรียงด้วย (ช่อง 08:00–20:00) ไม่ใส่เวลาจะลงช่องแรกของวัน</p>
+    </div>
+    <div class="card">
+      <h2>14 วันข้างหน้า</h2>
+      <div class="list" id="e-list"><p class="muted">ยังไม่มีข้อมูล</p></div>
+    </div>
+  </section>
+
+  <!-- ตั้งค่า -->
+  <section class="view" id="v-settings">
+    <div class="card">
+      <h2>โปรไฟล์และเป้าหมาย</h2>
+      <p class="muted" style="margin:0 0 12px">เก็บไว้ในเครื่องนี้เท่านั้น ไม่ขึ้น GitHub สมาชิกในกลุ่มใช้แอปเดียวกันแล้วตั้งของตัวเองได้</p>
+      <div class="prof-row">
+        <span class="avatar"><img id="s-avatar-img" src="" alt="รูปโปรไฟล์"></span>
+        <div style="flex:1">
+          <label class="filebtn">เลือกรูปโปรไฟล์<input type="file" id="s-avatar" accept="image/*"></label>
+          <button type="button" class="small ghost" id="s-avatar-del" style="margin-top:6px">ลบรูป</button>
+        </div>
+      </div>
+      <div id="cropper" style="display:none;margin-top:12px;text-align:center">
+        <canvas id="crop-cv" width="480" height="480" style="width:240px;height:240px;border-radius:50%;touch-action:none;cursor:grab;box-shadow:0 0 0 3px #8ccbff"></canvas>
+        <div class="muted" style="margin:6px 0">ลากเพื่อเลื่อนตำแหน่ง · เลื่อนแถบเพื่อซูม</div>
+        <input type="range" id="crop-zoom" min="1" max="5" step="0.01" value="1" style="padding:0">
+        <button type="button" class="small" id="crop-ok" style="margin-top:8px;background:var(--blue);color:#fff">ใช้รูปนี้</button>
+      </div>
+      <label class="f" style="margin-top:12px"><span>ชื่อที่แสดง</span><input id="s-name" placeholder="เช่น คุณเกรียงศักดิ์ ดวงใจ"></label>
+      <div class="prof-row" style="margin-top:14px">
+        <span class="pin" style="animation:none"><img id="s-pin-img" src="pin-founders-diamond.jpg" alt="Pin"></span>
+        <div style="flex:1">
+          <label class="filebtn">เลือกรูป Pin<input type="file" id="s-pin" accept="image/*"></label>
+          <button type="button" class="small ghost" id="s-pin-del" style="margin-top:6px">ใช้ Pin ตั้งต้น</button>
+        </div>
+      </div>
+      <div class="grid" style="margin-top:12px">
+        <label class="f"><span>ชื่อเป้าหมาย</span><input id="s-goal" placeholder="เช่น Founders Platinum" list="pin-list"></label>
+        <label class="f"><span>ครบกำหนด</span><input type="date" id="s-deadline"></label>
+      </div>
+      <datalist id="pin-list">
+        <option>Silver Producer</option><option>Gold Producer</option><option>Platinum</option><option>Founders Platinum</option>
+        <option>Sapphire</option><option>Emerald</option><option>Diamond</option><option>Founders Diamond</option><option>Executive Diamond</option>
+      </datalist>
+      <button class="primary" id="s-prof-save" type="button" style="margin-top:12px">บันทึกโปรไฟล์</button>
+    </div>
+    <div class="card warn">
+      <h2>เชื่อมต่อครั้งแรก</h2>
+      <p class="muted" style="margin:0">ใส่ลิงก์เว็บแอปจาก Apps Script และรหัสลับที่ได้จากการรัน setup() ข้อมูลนี้เก็บไว้ในเครื่องนี้เท่านั้น ไม่อยู่บน GitHub</p>
+    </div>
+    <div class="card">
+      <label class="f"><span>ลิงก์เว็บแอป (ลงท้าย /exec)</span><input id="s-url" placeholder="https://script.google.com/macros/s/…/exec"></label>
+      <label class="f" style="margin-top:10px"><span>รหัสลับ</span><input id="s-key" type="password" autocomplete="off"></label>
+      <button class="primary" id="s-save" type="button" style="margin-top:12px">บันทึกและทดสอบ</button>
+      <button id="s-forget" type="button" style="margin-top:10px;width:100%">ลบการเชื่อมต่อจากเครื่องนี้</button>
+    </div>
+  </section>
+</main>
+
+<nav><div class="in">
+  <button type="button" data-view="v-today" class="on">วันนี้</button>
+  <button type="button" data-view="v-dash">Dashboard</button>
+  <button type="button" data-view="v-prospects">ผู้มุ่งหวัง</button>
+  <button type="button" data-view="v-cal">ปฏิทิน</button>
+</div></nav>
+<div id="toast"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ---------- เก็บค่าในเครื่อง ----------
+  var mem = {};
+  function store(k, v) {
+    try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); }
+    catch (e) { if (v === undefined) return mem[k] || null; if (v === null) delete mem[k]; else mem[k] = v; }
+  }
+
+  // ---------- วันที่แบบเวลาไทย ----------
+  function bangkokToday() { return new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10); }
+  function parts(s) { var a = s.split('-').map(Number); return { y: a[0], m: a[1], d: a[2] }; }
+  function shift(s, n) { var p = parts(s); return new Date(Date.UTC(p.y, p.m - 1, p.d + n)).toISOString().slice(0, 10); }
+  function dow(s) { var p = parts(s); return new Date(Date.UTC(p.y, p.m - 1, p.d)).getUTCDay(); }
+  var DOW = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
+  var MON = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+  function thaiDate(s) { var p = parts(s); return 'วัน' + DOW[dow(s)] + ' ' + p.d + ' ' + MON[p.m - 1] + ' ' + String(p.y + 543).slice(2); }
+  function isLastSunday(s) { return dow(s) === 0 && parts(shift(s, 7)).m !== parts(s).m; }
+
+  // ---------- รายการงานเริ่มต้นตามวัน (แก้ได้ในแอป) ----------
+  function defaultTasks(s) {
+    var w = dow(s), L = [];
+    L.push(['link', 'ฟัง Link a day + จด 1 ไอเดีย', '05:00 ระหว่างทำอาหารให้ลูก']);
+    if (w >= 1 && w <= 5) {
+      var tt = (w === 2 || w === 4);
+      L.push(['body', tt ? 'อ่านหนังสือ 30 นาที' : 'ออกกำลังกาย 30 นาที', '05:30–06:00']);
+      L.push(['coffee', 'แก้วกาแฟ: คุยคนใหม่ 1 + ติดตามคนเก่า 1', '09:00–10:00 ลงรายชื่อทันที']);
+      L.push(['meditate', 'นั่งสมาธิ 15 นาที', '10:45–11:00']);
+      L.push(['clinic', tt ? 'ตัดคลิปความรู้คลินิก 1 คลิป' : 'ตัดคลิปตลกคลินิก 1 คลิป', tt ? '11:00–13:00' : '11:00–12:00']);
+      L.push(['plan', 'ฝึกเขียน-เล่าแผน 1 ชม. + อัดคลิปตัวเอง', tt ? '13:30–14:30' : '12:45–13:45']);
+      L.push(['cyber', 'งานคลิป/สื่ออบรมตำรวจไซเบอร์', tt ? '14:30–15:15' : '13:45–15:15 (ไม่เกิน 2 ชม.)']);
+      L.push(['follow', 'ทัก/ติดตามลูกค้าอย่างน้อย 3 คน', 'ระหว่างลูกออกกำลังกาย']);
+      var ev = { 1: ['ซูมแอมเวย์', '20:00–22:00'], 2: ['ออนไลน์: ตอบแชท / นัดคุย 1:1', '20:00–21:30'], 3: ['ซูมแอมเวย์', '20:00–22:00'],
+        4: ['ประชุมออนไซต์ (ฝากลูกบ้านแม่ก่อน 19:30)', '20:00–21:00'], 5: ['ออนไลน์ + สรุปตัวเลขสัปดาห์', '20:00–21:30'] }[w];
+      L.push(['online', ev[0], ev[1]]);
+    } else if (w === 6) {
+      L.push(['online', 'ตัดคลิปสินค้า 1 คลิปจากฟุตเทจทั้งสัปดาห์', 'เช้าตรู่ก่อนลูกตื่น']);
+      L.push(['follow', 'ตอบแชท + ทักคนที่มีส่วนร่วม 10 คน', 'หลังลูกนอน']);
+    } else {
+      L.push(['online', 'เขียนโพสต์ 3 โพสต์ไว้ลงทั้งสัปดาห์', 'เช้าตรู่ก่อนลูกตื่น']);
+      L.push(['plan', isLastSunday(s) ? 'สรุปสัปดาห์ + วางแผนเดือนหน้าจาก Achieve' : 'สรุปสัปดาห์ + วางแผนสัปดาห์หน้า', 'หลังลูกนอน']);
+    }
+    L.push(['review', 'ติ๊กเช็กลิสต์ + เข้านอนตามเวลา', (w === 1 || w === 3 || w === 4) ? 'ประมาณ 22:30' : '22:00']);
+    return L.map(function (t) { return { key: t[0], text: t[1], time: t[2] }; });
+  }
+
+  // ---------- คำคม (ไทย / อังกฤษ) ----------
+  var QUOTES = [
+    ['ความพยายามไม่ถึงที่สุด เปลี่ยนแปลงชีวิตไม่ได้', 'Effort that stops halfway changes nothing.'],
+    ['วินัยวันนี้ คือความสำเร็จในวันหน้า', 'Discipline carries you where motivation cannot.'],
+    ['เพชรเกิดจากแรงกดดัน ความสำเร็จเกิดจากความอดทน', 'Pressure shapes diamonds. Patience shapes success.'],
+    ['ทำซ้ำทุกวัน จนสิ่งที่ทำกลายเป็นตัวเรา', 'Small steps every day build the diamond.'],
+    ['ช่วยให้คนอื่นสำเร็จ แล้วความสำเร็จจะมาหาเราเอง', 'Help others win, and your own win will follow.'],
+    ['เริ่มวันนี้ ดีกว่ารอวันที่พร้อม', 'Show up today. Your future self is watching.']
+  ];
+  function setQuote(i) { var q = $('quote'); q.querySelector('.th').textContent = '“' + QUOTES[i][0] + '”'; q.querySelector('.en').textContent = QUOTES[i][1]; }
+  function startQuotes() {
+    var i = 0; setQuote(0);
+    setInterval(function () {
+      $('quote').classList.add('fade');
+      setTimeout(function () { i = (i + 1) % QUOTES.length; setQuote(i); $('quote').classList.remove('fade'); }, 600);
+    }, 9000);
+  }
+
+  // ---------- โปรไฟล์ (เก็บในเครื่อง) ----------
+  var DEFAULT_PIN = 'pin-founders-diamond.jpg';
+  var BLANK_AVATAR = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#dcecfb"/><circle cx="50" cy="38" r="18" fill="#9fc6ee"/><path d="M16 92c4-20 18-30 34-30s30 10 34 30" fill="#9fc6ee"/></svg>');
+  function profile() {
+    return { name: store('dc_name') || 'ชื่อของคุณ', avatar: store('dc_avatar') || BLANK_AVATAR, pin: store('dc_pin') || DEFAULT_PIN,
+      goal: store('dc_goal') || 'Founders Diamond', deadline: store('dc_deadline') || '2029-08-31' };
+  }
+  function applyProfile() {
+    var p = profile();
+    $('h-name').textContent = p.name; $('h-goal').textContent = p.goal;
+    $('h-avatar').src = p.avatar; $('h-pin').src = p.pin;
+    $('s-avatar-img').src = p.avatar; $('s-pin-img').src = p.pin;
+    renderGoal(null);
+  }
+  function fillProfileForm() {
+    var p = profile();
+    $('s-name').value = store('dc_name') || ''; $('s-goal').value = p.goal; $('s-deadline').value = p.deadline;
+    $('s-avatar-img').src = p.avatar; $('s-pin-img').src = p.pin;
+  }
+  /** ย่อรูปให้เล็กก่อนเก็บในเครื่อง: square = ครอปจัตุรัสกลางภาพ */
+  function readImage(file, size, square) {
+    return new Promise(function (res, rej) {
+      var fr = new FileReader();
+      fr.onload = function () {
+        var img = new Image();
+        img.onload = function () {
+          var sw = img.width, sh = img.height, sx = 0, sy = 0, w, h;
+          if (square) { var m = Math.min(sw, sh); sx = (sw - m) / 2; sy = Math.max(0, (sh - m) / 2 - (sh - m) * 0.25); sw = sh = m; w = h = size; }
+          else { var k = size / Math.max(sw, sh); w = Math.round(sw * Math.min(1, k)); h = Math.round(sh * Math.min(1, k)); }
+          var c = document.createElement('canvas'); c.width = w; c.height = h;
+          c.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, w, h);
+          res(c.toDataURL('image/jpeg', 0.86));
+        };
+        img.onerror = function () { rej(new Error('เปิดรูปนี้ไม่ได้')); };
+        img.src = fr.result;
+      };
+      fr.onerror = function () { rej(new Error('อ่านไฟล์ไม่ได้')); };
+      fr.readAsDataURL(file);
+    });
+  }
+
+  // ---------- เรียกหลังบ้าน ----------
+  function cfg() { return { url: store('dc_url') || '', key: store('dc_key') || '' }; }
+  function api(body) {
+    var c = cfg();
+    if (!c.url || !c.key) return Promise.reject(new Error('ยังไม่ได้ตั้งค่าการเชื่อมต่อ'));
+    body.key = c.key;
+    return fetch(c.url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), redirect: 'follow' })
+      .then(function (r) { if (!r.ok) throw new Error('เชื่อมต่อไม่ได้ (' + r.status + ')'); return r.json(); })
+      .then(function (j) { if (!j.ok) throw new Error(j.error || 'เกิดข้อผิดพลาด'); return j; });
+  }
+
+  // ---------- UI ทั่วไป ----------
+  var $ = function (id) { return document.getElementById(id); };
+  var state = { date: bangkokToday(), tasks: [], checked: {}, events: [], period: 'week', dash: null, editing: false };
+  var toastTimer;
+  function toast(msg) { var t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.classList.remove('show'); }, 2600); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function fmt(n) { n = Number(n) || 0; return (Math.round(n * 10) / 10).toLocaleString('th-TH'); }
+
+  function show(view) {
+    document.querySelectorAll('.view').forEach(function (v) { v.classList.toggle('on', v.id === view); });
+    document.querySelectorAll('nav button').forEach(function (b) { b.classList.toggle('on', b.dataset.view === view); });
+    window.scrollTo(0, 0);
+    if (view === 'v-dash') loadDash();
+  }
+
+  // ---------- เช็กลิสต์ ----------
+  function renderTasks() {
+    var box = $('tasks');
+    box.innerHTML = '';
+    state.tasks.forEach(function (t) {
+      var on = !!state.checked[t.key];
+      var row = document.createElement('label');
+      row.className = 'task' + (on ? ' done' : '');
+      row.innerHTML = '<input type="checkbox"' + (on ? ' checked' : '') + '><div><div class="t">' + esc(t.text) + '</div>' + (t.time ? '<div class="h">' + esc(t.time) + '</div>' : '') + '</div>';
+      row.querySelector('input').addEventListener('change', function (e) {
+        state.checked[t.key] = e.target.checked; row.classList.toggle('done', e.target.checked); renderProgress();
+      });
+      box.appendChild(row);
+    });
+    $('tasks-title').textContent = state.date === bangkokToday() ? 'เช็กลิสต์วันนี้' : 'เช็กลิสต์ ' + thaiDate(state.date);
+    renderProgress();
+  }
+  function doneKeys() { return state.tasks.filter(function (t) { return state.checked[t.key]; }); }
+  function renderProgress() {
+    var done = doneKeys().length, total = state.tasks.length;
+    $('bar').style.width = (total ? Math.round(done / total * 100) : 0) + '%';
+    $('stat-done').textContent = done + '/' + total + ' งาน';
+  }
+
+  // ตัวแก้รายการ
+  function edRow(t) {
+    var row = document.createElement('div');
+    row.className = 'ed-row';
+    row.dataset.key = t.key || '';
+    row.innerHTML = '<input class="ed-text" placeholder="ชื่องาน"><input class="ed-time" placeholder="เวลา">' +
+      '<button type="button" class="up" aria-label="ขึ้น">▲</button><button type="button" class="dn" aria-label="ลง">▼</button><button type="button" class="del" aria-label="ลบ">✕</button>';
+    row.querySelector('.ed-text').value = t.text || '';
+    row.querySelector('.ed-time').value = t.time || '';
+    row.querySelector('.up').addEventListener('click', function () { if (row.previousElementSibling) row.parentNode.insertBefore(row, row.previousElementSibling); });
+    row.querySelector('.dn').addEventListener('click', function () { if (row.nextElementSibling) row.parentNode.insertBefore(row.nextElementSibling, row); });
+    row.querySelector('.del').addEventListener('click', function () { row.remove(); });
+    return row;
+  }
+  function openEditor() {
+    state.editing = true;
+    $('tasks').style.display = 'none'; $('editor').style.display = '';
+    var list = $('ed-list'); list.innerHTML = '';
+    state.tasks.forEach(function (t) { list.appendChild(edRow(t)); });
+    $('ed-scope').options[0].textContent = 'ใช้กับวัน' + DOW[dow(state.date)] + 'ของทุกสัปดาห์';
+    $('edit').style.display = 'none';
+  }
+  function closeEditor() {
+    state.editing = false;
+    $('tasks').style.display = ''; $('editor').style.display = 'none'; $('edit').style.display = '';
+    renderTasks();
+  }
+  function sendTasks(tasks, scope, msg) {
+    var btn = $('ed-save'); btn.disabled = true;
+    api({ action: 'saveTasks', date: state.date, scope: scope, tasks: tasks }).then(function (j) {
+      state.tasks = j.tasks || defaultTasks(state.date);
+      closeEditor(); toast(msg);
+    }).catch(function (e) { toast(e.message); }).then(function () { btn.disabled = false; });
+  }
+
+  // ---------- เป้าหมาย / กิจกรรม / รายชื่อ ----------
+  function renderGoal(g) {
+    var pf = profile(), dl = pf.deadline, dp = parts(dl);
+    var left = Math.ceil((Date.parse(dl + 'T00:00:00Z') - Date.parse(bangkokToday() + 'T00:00:00Z')) / 864e5);
+    $('goal-days').textContent = 'ภายใน ' + dp.d + ' ' + MON[dp.m - 1] + ' ' + String(dp.y + 543).slice(2) + ' · ' + (left >= 0 ? 'เหลือ ' + left.toLocaleString('th-TH') + ' วัน' : 'ครบกำหนดแล้ว');
+    if (!g) return;
+    $('g-phase').textContent = g.phase;
+    $('g-weeklabel').textContent = 'เป้าหมายสัปดาห์นี้ (เริ่ม ' + g.weekStart + ')';
+    $('g-week').textContent = g.week || 'ยังไม่ได้ตั้งเป้าสัปดาห์นี้ เพิ่มได้ในชีต "เป้าหมายรายสัปดาห์"';
+    $('g-pass').textContent = g.pass ? 'ผ่านเมื่อ: ' + g.pass : '';
+    $('g-phasegoals').innerHTML = (g.phaseGoals || []).map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('');
+  }
+  function fillDay(day) {
+    state.checked = {};
+    (day.checked || []).forEach(function (k) { state.checked[k] = true; });
+    document.querySelectorAll('[data-num]').forEach(function (i) { var v = (day.nums || {})[i.dataset.num]; i.value = (v === '' || v == null) ? '' : v; });
+    $('note').value = day.note || '';
+    renderTasks();
+  }
+  function renderProspects(list) {
+    var box = $('p-list');
+    if (!list || !list.length) { box.innerHTML = '<p class="muted">ยังไม่มีรายชื่อ</p>'; return; }
+    box.innerHTML = list.map(function (p) {
+      return '<div class="item"><div><div>' + esc(p.name) + '</div><div class="meta">' + esc(p.topic || '-') + '</div></div><span class="pill">' + esc(p.score) + '/25</span></div>';
+    }).join('');
+  }
+  function pillClass(type) { return type.indexOf('วันเกิด') === 0 ? 'pill bd' : (type.indexOf('อบรม') === 0 ? 'pill tr' : 'pill'); }
+  function eventRow(e) {
+    var extra = (e.yearly && e.years > 0) ? ' · ครบ ' + e.years + ' ปี' : '';
+    return '<div class="item"><div><div style="white-space:pre-line">' + esc(e.text) + '</div><div class="meta">' + esc((e.time ? e.time + ' · ' : '') + e.type + extra) + '</div></div><span class="' + pillClass(e.type) + '">' + esc(e.type.replace('วันเกิด ', '')) + '</span></div>';
+  }
+  function renderEvents(list) {
+    state.events = list || [];
+    var box = $('e-list');
+    if (!state.events.length) box.innerHTML = '<p class="muted">ไม่มีกิจกรรมใน 14 วันนี้</p>';
+    else {
+      var html = '', last = '';
+      state.events.forEach(function (e) {
+        if (e.date !== last) { html += '<div class="day-h">' + esc(thaiDate(e.date)) + '</div>'; last = e.date; }
+        html += eventRow(e);
+      });
+      box.innerHTML = html;
+    }
+    var today = state.events.filter(function (e) { return e.date === state.date; });
+    $('today-events-card').style.display = today.length ? '' : 'none';
+    $('today-events').innerHTML = today.map(eventRow).join('');
+  }
+
+  function load() {
+    $('date').value = state.date;
+    $('today-label').textContent = thaiDate(state.date);
+    if (state.editing) closeEditor();
+    state.tasks = defaultTasks(state.date);
+    renderTasks();
+    if (!cfg().url) { show('v-settings'); return; }
+    $('saved-at').textContent = 'กำลังโหลดจาก Google Sheet…';
+    api({ action: 'load', date: state.date }).then(function (j) {
+      state.tasks = (j.tasks && j.tasks.length) ? j.tasks : defaultTasks(state.date);
+      fillDay(j.day); renderProspects(j.prospects); renderEvents(j.events); renderGoal(j.goal);
+      $('stat-streak').textContent = j.streak ? 'ทำได้ดีติดกัน ' + j.streak + ' วัน' : '';
+      $('saved-at').textContent = '';
+      if ($('v-dash').classList.contains('on')) loadDash();
+    }).catch(function (e) { $('saved-at').textContent = ''; toast(e.message); });
+  }
+
+  function collectNums() {
+    var n = {};
+    document.querySelectorAll('[data-num]').forEach(function (i) { n[i.dataset.num] = i.value.trim(); });
+    return n;
+  }
+  function saveDay(btn, idleText, okMsg) {
+    var done = doneKeys();
+    btn.disabled = true; btn.textContent = 'กำลังบันทึก…';
+    return api({ action: 'saveDay', date: state.date, checked: done.map(function (t) { return t.key; }),
+      checkedNames: done.map(function (t) { return t.text; }), total: state.tasks.length, nums: collectNums(), note: $('note').value })
+      .then(function () {
+        var t = new Date(); $('saved-at').textContent = 'บันทึกแล้ว ' + ('0' + t.getHours()).slice(-2) + ':' + ('0' + t.getMinutes()).slice(-2);
+        toast(okMsg); state.dash = null;
+      })
+      .catch(function (e) { toast(e.message); })
+      .then(function () { btn.disabled = false; btn.textContent = idleText; });
+  }
+
+  // ---------- Dashboard ----------
+  var GROUPS = [
+    ['Sponsor', 'สร้างทีม', ['newpp', 'presentations', 'joins', 'legs']],
+    ['Selling', 'ขายสินค้า', ['cases', 'bv']],
+    ['Service', 'ดูแลลูกค้าและทีม', ['service', 'abo']],
+    ['Meeting', 'เข้าระบบประชุม', ['meetings', 'guests']]
+  ];
+  var NAMES = { newpp: 'คนใหม่ที่คุย', presentations: 'นำเสนอแผน', joins: 'คนเข้าระบบ', legs: 'สายงานใหม่', cases: 'เคสขาย', bv: 'BV',
+    service: 'ลูกค้าที่ดูแล', abo: 'ABO ที่ติดตาม', meetings: 'เข้าประชุม/อบรม', guests: 'พาคนเข้าประชุม', selfdev: 'พัฒนาตัวเอง (นาที)' };
+  function lv(r) { return r >= 1 ? 'lv-ok' : (r >= 0.5 ? 'lv-mid' : 'lv-low'); }
+
+  function loadDash() {
+    if (!cfg().url) return;
+    $('d-label').textContent = 'กำลังโหลด…';
+    api({ action: 'dash', date: state.date, period: state.period }).then(function (d) { state.dash = d; renderDash(d); })
+      .catch(function (e) { $('d-label').textContent = ''; toast(e.message); });
+  }
+
+  function renderDash(d) {
+    var c = d.cur.n, t = d.target, pv = d.prev.n;
+    $('d-label').textContent = d.label + ' · ' + d.phase;
+    $('k-joins').textContent = fmt(c.joins); $('k-joins-s').textContent = 'สะสม ' + fmt(d.life.joins) + ' คน';
+    $('k-legs').textContent = fmt(c.legs); $('k-legs-s').textContent = 'สะสม ' + fmt(d.life.legs) + ' สาย';
+    $('k-pct').textContent = Math.round(d.cur.pct * 100) + '%'; $('k-pct-s').textContent = 'บันทึก ' + d.cur.days + ' วัน';
+
+    // กลุ่ม 3S + 1M
+    $('groups').innerHTML = GROUPS.map(function (g) {
+      var ratios = g[2].map(function (k) { return t[k] ? c[k] / t[k] : 1; });
+      var avg = ratios.reduce(function (a, b) { return a + Math.min(b, 1.5); }, 0) / ratios.length;
+      var rows = g[2].map(function (k) {
+        var r = t[k] ? c[k] / t[k] : 0, diff = c[k] - pv[k];
+        return '<div class="m"><div class="row1"><span>' + NAMES[k] + '</span><span><b>' + fmt(c[k]) + '</b> / เป้า ' + fmt(t[k]) + '</span></div>' +
+          '<div class="bar"><div class="' + lv(r) + '" style="width:' + Math.min(100, Math.round(r * 100)) + '%"></div></div>' +
+          '<div class="delta">' + (diff === 0 ? 'เท่ากับช่วงก่อน' : (diff > 0 ? '▲ ' : '▼ ') + fmt(Math.abs(diff)) + ' จากช่วงก่อน') + '</div></div>';
+      }).join('');
+      var tag = avg >= 1 ? 'ถึงเป้า' : (avg >= 0.5 ? 'กำลังไป' : 'ต้องเร่ง');
+      return '<div class="card gcard"><h3><span>' + g[0] + ' <small class="muted">' + g[1] + '</small></span><span class="tag ' + lv(avg) + '">' + tag + '</span></h3>' + rows + '</div>';
+    }).join('');
+
+    // กรวย Sponsor
+    var st = [['คนใหม่ที่คุย', c.newpp], ['นำเสนอแผน', c.presentations], ['คนเข้าระบบ', c.joins], ['สายงานใหม่', c.legs]];
+    var top = Math.max(1, st[0][1], st[1][1]);
+    var fh = '';
+    st.forEach(function (s, i) {
+      if (i > 0) fh += '<div class="conv">' + (st[i - 1][1] ? Math.round(s[1] / st[i - 1][1] * 100) + '% ไปต่อ' : '–') + '</div>';
+      fh += '<div class="st"><span>' + s[0] + '</span><div class="b" style="width:' + Math.round(s[1] / top * 100) + '%"></div><span class="c">' + fmt(s[1]) + '</span></div>';
+    });
+    $('funnel').innerHTML = fh;
+
+    renderChart(d);
+    renderRecs(d);
+    renderGauges(d);
+    renderPie(d);
+    renderCmp(d);
+  }
+
+  var MFULL = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+  function shortLabel(label, period) {
+    if (period === 'year') return label.replace('ปีผลงาน ', '').split(' – ')[0];
+    if (period === 'month') { var m = MFULL.indexOf(label.split(' ')[0]); return m >= 0 ? MON[m] : label.slice(0, 6); }
+    return label.split(' – ')[0].replace(/ \d\d$/, '');
+  }
+  var GCOL = { Sponsor: '#1a73d9', Selling: '#16a34a', Service: '#f59e0b', Meeting: '#8b5cf6' };
+  var WEIGHT = { Sponsor: 0.4, Selling: 0.2, Service: 0.2, Meeting: 0.2 };
+  function groupScore(n, t, keys) {
+    return keys.reduce(function (a, k) { return a + Math.min(t[k] ? n[k] / t[k] : 1, 1.5); }, 0) / keys.length;
+  }
+  function arcPath(cx, cy, r, a0, a1) { // องศา: 180 = ซ้าย, 0 = ขวา
+    var p0 = [cx + r * Math.cos(a0 * Math.PI / 180), cy - r * Math.sin(a0 * Math.PI / 180)];
+    var p1 = [cx + r * Math.cos(a1 * Math.PI / 180), cy - r * Math.sin(a1 * Math.PI / 180)];
+    return 'M' + p0[0] + ' ' + p0[1] + 'A' + r + ' ' + r + ' 0 0 1 ' + p1[0] + ' ' + p1[1];
+  }
+  /** เกจแบบเข็ม 0–150% */
+  function gaugeSvg(v, big) {
+    var W = big ? 240 : 110, cx = W / 2, cy = big ? 120 : 58, r = big ? 96 : 44, sw = big ? 16 : 9;
+    var val = Math.max(0, Math.min(1.5, v)), ang = val / 1.5 * 180 - 90;
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + (cy + (big ? 34 : 24)) + '" width="100%" style="max-width:' + (big ? 280 : 130) + 'px" role="img" aria-label="' + Math.round(val * 100) + '%">';
+    svg += '<path d="' + arcPath(cx, cy, r, 180, 60) + '" stroke="#f8c37a" stroke-width="' + sw + '" fill="none"/>';
+    svg += '<path d="' + arcPath(cx, cy, r, 60, 0.01) + '" stroke="#e7f0fa" stroke-width="' + sw + '" fill="none"/>';
+    svg += '<path d="' + arcPath(cx, cy, r, 120, 60) + '" stroke="#9fd0fb" stroke-width="' + sw + '" fill="none"/>';
+    svg += '<path d="' + arcPath(cx, cy, r, 60, 0.01) + '" stroke="#86d4a3" stroke-width="' + sw + '" fill="none"/>';
+    if (big) {
+      [[0, '0'], [60, '50%'], [120, '100%'], [180, '150%']].forEach(function (t) {
+        var a = (180 - t[0]) * Math.PI / 180, x = cx + (r + 20) * Math.cos(a), y = cy - (r + 20) * Math.sin(a);
+        svg += '<text x="' + x + '" y="' + (y + 4) + '" font-size="10" text-anchor="middle" fill="#5f7593">' + t[1] + '</text>';
+      });
+    }
+    var len = r - (big ? 14 : 8);
+    svg += '<g class="needle" style="transform-origin:' + cx + 'px ' + cy + 'px;transform:rotate(-90deg)" data-rot="' + ang + '">' +
+      '<path d="M' + (cx - (big ? 4 : 2.5)) + ' ' + cy + 'L' + cx + ' ' + (cy - len) + 'L' + (cx + (big ? 4 : 2.5)) + ' ' + cy + 'Z" fill="#0d4ea6"/></g>';
+    svg += '<circle cx="' + cx + '" cy="' + cy + '" r="' + (big ? 8 : 5) + '" fill="#0d4ea6"/>';
+    svg += '<text x="' + cx + '" y="' + (cy + (big ? 30 : 21)) + '" font-size="' + (big ? 22 : 12) + '" font-weight="700" text-anchor="middle" fill="#0d4ea6">' + Math.round(val * 100) + '%</text>';
+    return svg + '</svg>';
+  }
+  function swingNeedles() {
+    requestAnimationFrame(function () { requestAnimationFrame(function () {
+      document.querySelectorAll('.needle').forEach(function (g) { g.style.transform = 'rotate(' + g.dataset.rot + 'deg)'; });
+    }); });
+  }
+  function renderGauges(d) {
+    var n = d.basis.n, t = d.basis.target, total = 0;
+    var mini = GROUPS.map(function (g) {
+      var sc = groupScore(n, t, g[2]); total += Math.min(sc, 1.5) * WEIGHT[g[0]];
+      return '<div>' + gaugeSvg(sc, false) + '<div class="gl" style="color:' + GCOL[g[0]] + '">' + g[0] + '</div><div class="gs">' + g[1] + '</div></div>';
+    }).join('');
+    $('g-mini').innerHTML = mini;
+    $('g-main').innerHTML = gaugeSvg(total, true);
+    swingNeedles();
+  }
+  /** Pie: สัดส่วนกิจกรรมของแต่ละหมวด (นับจำนวนครั้ง/คน ไม่รวม BV) */
+  function renderPie(d) {
+    var n = d.cur.n;
+    var parts = [['Sponsor', n.newpp + n.presentations + n.joins + n.legs], ['Selling', n.cases], ['Service', n.service + n.abo], ['Meeting', n.meetings + n.guests]];
+    var sum = parts.reduce(function (a, p) { return a + p[1]; }, 0);
+    var cx = 90, cy = 90, R = 80, r0 = 46, a = -Math.PI / 2, svg = '<svg viewBox="0 0 180 180" width="100%" style="max-width:220px;display:block;margin:0 auto" role="img" aria-label="สัดส่วนกิจกรรม">';
+    if (!sum) svg += '<circle cx="90" cy="90" r="63" fill="none" stroke="#e7f0fa" stroke-width="34"/>';
+    parts.forEach(function (p) {
+      if (!p[1]) return;
+      var f = p[1] / sum, b = a + f * 2 * Math.PI, large = f > 0.5 ? 1 : 0;
+      if (f >= 0.999) { svg += '<circle cx="90" cy="90" r="63" fill="none" stroke="' + GCOL[p[0]] + '" stroke-width="34"/>'; }
+      else {
+        var P = function (ang, rad) { return (cx + rad * Math.cos(ang)) + ' ' + (cy + rad * Math.sin(ang)); };
+        svg += '<path d="M' + P(a, R) + 'A' + R + ' ' + R + ' 0 ' + large + ' 1 ' + P(b, R) + 'L' + P(b, r0) + 'A' + r0 + ' ' + r0 + ' 0 ' + large + ' 0 ' + P(a, r0) + 'Z" fill="' + GCOL[p[0]] + '" stroke="#fff" stroke-width="2"/>';
+        if (f >= 0.07) { var m = (a + b) / 2; svg += '<text x="' + (cx + 63 * Math.cos(m)) + '" y="' + (cy + 63 * Math.sin(m) + 4) + '" font-size="11" font-weight="700" text-anchor="middle" fill="#fff">' + Math.round(f * 100) + '%</text>'; }
+      }
+      a = b;
+    });
+    var sp = sum ? Math.round(parts[0][1] / sum * 100) : 0;
+    svg += '<text x="90" y="86" font-size="20" font-weight="700" text-anchor="middle" fill="#0d4ea6">' + sp + '%</text><text x="90" y="104" font-size="10.5" text-anchor="middle" fill="#5f7593">Sponsor</text></svg>';
+    $('pie').innerHTML = svg;
+    $('pie-legend').innerHTML = parts.map(function (p) { return '<span style="--c:' + GCOL[p[0]] + '">' + p[0] + ' ' + fmt(p[1]) + '</span>'; }).join('');
+  }
+  /** แท่งเปรียบเทียบ: ช่วงนี้ vs ช่วงก่อน เทียบเป้า (100%) */
+  function renderCmp(d) {
+    var keys = ['newpp', 'presentations', 'joins', 'cases', 'bv', 'service', 'meetings', 'guests'];
+    var c = d.cur.n, pv = d.prev.n, t = d.target;
+    var W = 340, L = 92, rowH = 30, H = keys.length * rowH + 28, max = 1.5;
+    var x = function (v) { return L + (W - L - 10) * Math.min(v, max) / max; };
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="เปรียบเทียบกับเป้า">';
+    [0, 0.5, 1, 1.5].forEach(function (v) { svg += '<line x1="' + x(v) + '" x2="' + x(v) + '" y1="4" y2="' + (H - 22) + '" stroke="' + (v === 1 ? '#f59e0b' : '#e3edf8') + '"' + (v === 1 ? ' stroke-dasharray="4 3"' : '') + '/><text x="' + x(v) + '" y="' + (H - 8) + '" font-size="10" text-anchor="middle" fill="' + (v === 1 ? '#b45309' : '#5f7593') + '">' + (v === 1 ? 'เป้า' : Math.round(v * 100) + '%') + '</text>'; });
+    keys.forEach(function (k, i) {
+      var y0 = 6 + i * rowH, rc = t[k] ? c[k] / t[k] : 0, rp = t[k] ? pv[k] / t[k] : 0;
+      svg += '<text x="' + (L - 8) + '" y="' + (y0 + 14) + '" font-size="11" text-anchor="end" fill="#10284a">' + NAMES[k] + '</text>';
+      svg += '<rect x="' + L + '" y="' + y0 + '" width="' + Math.max(0, x(rc) - L) + '" height="11" rx="3" fill="#1a73d9"/>';
+      svg += '<rect x="' + L + '" y="' + (y0 + 13) + '" width="' + Math.max(0, x(rp) - L) + '" height="7" rx="2" fill="#b9dbfa"/>';
+      svg += '<text x="' + (Math.max(x(rc), L) + 4) + '" y="' + (y0 + 10) + '" font-size="10" fill="#0d4ea6">' + fmt(c[k]) + '</text>';
+    });
+    svg += '</svg><div class="legend" style="grid-template-columns:auto auto auto;justify-content:start"><span style="--c:#1a73d9">ช่วงนี้</span><span style="--c:#b9dbfa">ช่วงก่อน</span><span style="--c:#f59e0b">เส้นเป้า</span></div>';
+    $('cmp').innerHTML = svg;
+  }
+
+  function renderChart(d) {
+    var key = $('chart-metric').value;
+    var vals = d.series.map(function (s) { return key === 'pct' ? Math.round(s.pct * 100) : (s.n[key] || 0); });
+    var target = key === 'pct' ? 80 : (d.target[key] || 0);
+    var W = 340, H = 170, L = 34, B = 34, T = 12, n = vals.length;
+    var max = Math.max(1, target, Math.max.apply(null, vals)) * 1.15;
+    var bw = (W - L - 8) / n;
+    var y = function (v) { return T + (H - T - B) * (1 - v / max); };
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="แนวโน้ม">';
+    [0, 0.5, 1].forEach(function (f) { var v = max / 1.15 * f; svg += '<line x1="' + L + '" x2="' + (W - 4) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="#e3edf8"/><text x="' + (L - 6) + '" y="' + (y(v) + 4) + '" font-size="10" text-anchor="end" fill="#5f7593">' + fmt(v) + '</text>'; });
+    vals.forEach(function (v, i) {
+      var x = L + i * bw + bw * 0.18, w = bw * 0.64, last = i === n - 1;
+      svg += '<rect x="' + x + '" y="' + y(v) + '" width="' + w + '" height="' + Math.max(0, y(0) - y(v)) + '" rx="3" fill="' + (last ? '#1a73d9' : '#9fd0fb') + '"/>';
+      if (last || v) svg += '<text x="' + (x + w / 2) + '" y="' + (y(v) - 4) + '" font-size="10" text-anchor="middle" fill="#0d4ea6">' + fmt(v) + '</text>';
+      svg += '<text x="' + (x + w / 2) + '" y="' + (H - 18) + '" font-size="9" text-anchor="middle" fill="' + (last ? '#0d4ea6' : '#5f7593') + '">' + esc(shortLabel(d.series[i].label, d.period)) + '</text>';
+    });
+    if (target) svg += '<line x1="' + L + '" x2="' + (W - 4) + '" y1="' + y(target) + '" y2="' + y(target) + '" stroke="#f59e0b" stroke-dasharray="4 3"/><text x="' + (L + 4) + '" y="' + (y(target) - 4) + '" font-size="10" text-anchor="start" fill="#b45309">เป้า ' + fmt(target) + '</text>';
+    svg += '</svg>';
+    $('chart').innerHTML = svg;
+  }
+
+  // คำแนะนำ: ดูยอดถึงวันที่เลือก เทียบเป้าที่ควรถึงแล้ว
+  function renderRecs(d) {
+    var b = d.basis, n = b.n, t = b.target;
+    var r = function (k) { return t[k] > 0 ? n[k] / t[k] : 1; };
+    var R = [];
+    function add(level, title, text, pri) { R.push({ level: level, title: title, text: text, pri: pri }); }
+
+    if (!b.days) add('high', 'เริ่มบันทึกทุกคืน', 'ยังไม่มีข้อมูลในช่วงนี้ บันทึกตัวเลข 3S+1M ทุกคืนก่อนนอน 5 นาที ตัวเลขจะบอกว่าต้องเร่งตรงไหน', 0);
+    else {
+      if (b.pct < 0.6) add('high', 'วินัยรายวันยังไม่ถึง 60%', 'ทำเช็กลิสต์ได้ ' + Math.round(b.pct * 100) + '% ล็อก 3 งานที่ห้ามพลาด: Link a day, ฝึกเล่าแผน 1 ชม., ติดตามลูกค้า 3 คน', 1);
+      if (r('newpp') < 0.7) add('high', 'เติมคนใหม่เข้ากรวย', 'คุยคนใหม่ ' + fmt(n.newpp) + ' จากที่ควรได้ ' + fmt(t.newpp) + ' — แก้วกาแฟคุยคนใหม่วันละ 1 คนแล้วลงรายชื่อทันที และทักคนที่มีส่วนร่วมออนไลน์ 10 คนทุกเสาร์', 2);
+      else if (n.newpp >= 3 && n.presentations / n.newpp < 0.25) add('mid', 'คุยเยอะ แต่นัดนำเสนอน้อย', 'ใช้แผนเวอร์ชัน 2 นาทีเปิดความสนใจ แล้วจบด้วยการนัดแบบ 2 ต่อ 1 กับอัพไลน์ทุกครั้ง', 3);
+      if (r('presentations') < 0.7) add('high', 'นำเสนอแผนต่ำกว่าเป้า', 'นำเสนอ ' + fmt(n.presentations) + ' ครั้ง จากที่ควรได้ ' + fmt(t.presentations) + ' — การนำเสนอคือเครื่องยนต์ของ Sponsor นัดล่วงหน้า 3 นัด/สัปดาห์ และใช้วันพฤหัสพาไปออนไซต์', 2);
+      if (n.presentations >= 3 && n.joins === 0) add('mid', 'นำเสนอแล้วยังไม่มีคนเข้าระบบ', 'ทบทวนคำตอบข้อสงสัย 10 ข้อ ให้อัพไลน์ช่วยปิด และติดตามภายใน 48 ชม. หลังนำเสนอ', 3);
+      if (n.joins > 0 && n.legs === 0) add('mid', 'เปลี่ยนคนเข้าระบบให้เป็นสายงาน', 'ช่วยคนใหม่ทำรายชื่อ 100 คนภายใน 48 ชม. และพาไปนำเสนอครั้งแรกภายใน 7 วัน สายงานเกิดจากการเริ่มต้นที่เร็ว', 3);
+      if (r('cases') < 0.5) add('mid', 'ยอดขายต่ำกว่าเป้า', 'ใช้โปรใน Achieve เดือนนี้เป็นตัวดัน เช่น eSpring แคร์ 3 ปี ผ่อน 0% นัดเดโมที่บ้านลูกค้า 3 บ้าน', 4);
+      if (n.cases > 0 && n.service < n.cases * 2) add('mid', 'ลูกค้าใหม่ต้องได้รับการดูแล', 'โทรหาลูกค้าภายใน 48 ชม. หลังซื้อ ถามผลการใช้ และชวนสมัครสั่งซื้อประจำ ยอดซ้ำคือฐานที่มั่นคง', 4);
+      else if (r('service') < 0.6) add('mid', 'Service ต่ำกว่าเป้า', 'ใช้ 30 นาทีระหว่างลูกออกกำลังกายติดตามลูกค้าเก่าและ ABO ในทีม ลูกค้าที่ดูแลดีจะกลายเป็นผู้แนะนำ', 5);
+      if (r('meetings') < 0.67) add('mid', 'เข้าระบบประชุมไม่ครบ', 'ซูมจันทร์/พุธและออนไซต์พฤหัสคือระบบที่สร้างความเชื่อ ทั้งกับตัวคุณและทีม พยายามไม่ขาด', 5);
+      if (d.period !== 'day' && n.guests === 0 && b.days >= 3) add('mid', 'พาคนใหม่เข้าประชุม', 'พาคนใหม่หรือ frontline เข้าประชุมอย่างน้อย 1 คน/สัปดาห์ ให้ระบบช่วยสร้างความเชื่อแทนคุณ', 4);
+      if (r('cases') >= 1 && r('presentations') < 0.5) add('high', 'ระวังเป็นนักขายเก่งแต่ทีมไม่โต', 'Diamond มาจากความกว้าง 6 สาย ไม่ใช่ยอดขายส่วนตัว ย้ายเวลาขาย 1 ชม./สัปดาห์ไปนำเสนอแผน', 1);
+      var pp = d.prev.n.presentations, cp = d.cur.n.presentations;
+      if (d.period !== 'day' && cp > pp && pp > 0) add('good', 'นำเสนอแผนเพิ่มขึ้นจากช่วงก่อน', 'จาก ' + fmt(pp) + ' เป็น ' + fmt(cp) + ' ครั้ง รักษาจังหวะนี้ไว้', 8);
+      if (!R.length) add('good', 'ถึงเป้าทุกหมวด', 'ทำได้ดีมาก ลองเพิ่มเป้านำเสนอแผน +1 ครั้ง/สัปดาห์ ในชีต "เป้าตัวเลขรายสัปดาห์" เพื่อให้โตเร็วขึ้น', 9);
+    }
+    R.sort(function (a, c) { return a.pri - c.pri; });
+    var K = { high: 'ทำทันที', mid: 'ปรับปรุง', good: 'ทำได้ดี' };
+    $('rec-basis').textContent = 'ดูจาก' + b.label + ' (' + b.days + ' วันที่บันทึก)';
+    $('recs').innerHTML = R.slice(0, 4).map(function (x) {
+      return '<div class="rec ' + x.level + '"><div class="k">' + K[x.level] + '</div><div class="t">' + esc(x.title) + '</div><div class="x">' + esc(x.text) + '</div></div>';
+    }).join('');
+  }
+
+  // ---------- เหตุการณ์ ----------
+  document.querySelectorAll('nav button').forEach(function (b) { b.addEventListener('click', function () { show(b.dataset.view); }); });
+  $('btn-settings').addEventListener('click', function () { var c = cfg(); $('s-url').value = c.url; $('s-key').value = c.key; fillProfileForm(); show('v-settings'); });
+  var pending = {};
+  // ตัวครอปรูปโปรไฟล์: ลากเลื่อน + ซูม
+  var crop = { img: null, z: 1, x: 0, y: 0 };
+  function drawCrop() {
+    var cv = $('crop-cv'), g = cv.getContext('2d'), im = crop.img; if (!im) return;
+    var base = 480 / Math.min(im.width, im.height), sc = base * crop.z;
+    var w = im.width * sc, h = im.height * sc;
+    crop.x = Math.min(0, Math.max(480 - w, crop.x)); crop.y = Math.min(0, Math.max(480 - h, crop.y));
+    g.fillStyle = '#dcecfb'; g.fillRect(0, 0, 480, 480); g.drawImage(im, crop.x, crop.y, w, h);
+  }
+  $('s-avatar').addEventListener('change', function (e) {
+    var f = e.target.files[0]; if (!f) return;
+    readImage(f, 1400, false).then(function (u) {
+      var im = new Image();
+      im.onload = function () {
+        crop.img = im; crop.z = im.height > im.width * 1.2 ? 2.2 : 1; $('crop-zoom').value = crop.z;
+        var sc = 480 / Math.min(im.width, im.height) * crop.z;
+        crop.x = (480 - im.width * sc) / 2; crop.y = -im.height * sc * 0.06;
+        $('cropper').style.display = ''; drawCrop();
+      };
+      im.src = u;
+    }).catch(function (er) { toast(er.message); });
+    e.target.value = '';
+  });
+  $('crop-zoom').addEventListener('input', function (e) {
+    var old = crop.z, nz = Number(e.target.value), k = nz / old;
+    crop.x = 240 - (240 - crop.x) * k; crop.y = 240 - (240 - crop.y) * k; crop.z = nz; drawCrop();
+  });
+  (function () {
+    var cv = $('crop-cv'), drag = null;
+    cv.addEventListener('pointerdown', function (e) { drag = { x: e.clientX, y: e.clientY }; cv.setPointerCapture(e.pointerId); });
+    cv.addEventListener('pointermove', function (e) {
+      if (!drag) return;
+      crop.x += (e.clientX - drag.x) * 2; crop.y += (e.clientY - drag.y) * 2; drag = { x: e.clientX, y: e.clientY }; drawCrop();
+    });
+    cv.addEventListener('pointerup', function () { drag = null; });
+  })();
+  $('crop-ok').addEventListener('click', function () {
+    var out = document.createElement('canvas'); out.width = out.height = 256;
+    out.getContext('2d').drawImage($('crop-cv'), 0, 0, 480, 480, 0, 0, 256, 256);
+    pending.avatar = out.toDataURL('image/jpeg', 0.88); $('s-avatar-img').src = pending.avatar;
+    $('cropper').style.display = 'none'; toast('กด "บันทึกโปรไฟล์" เพื่อใช้รูปนี้');
+  });
+  $('s-pin').addEventListener('change', function (e) {
+    var f = e.target.files[0]; if (!f) return;
+    readImage(f, 240, false).then(function (u) { pending.pin = u; $('s-pin-img').src = u; }).catch(function (er) { toast(er.message); });
+  });
+  $('s-avatar-del').addEventListener('click', function () { pending.avatar = null; $('s-avatar-img').src = BLANK_AVATAR; });
+  $('s-pin-del').addEventListener('click', function () { pending.pin = null; $('s-pin-img').src = DEFAULT_PIN; });
+  $('s-prof-save').addEventListener('click', function () {
+    try {
+      if ('avatar' in pending) store('dc_avatar', pending.avatar);
+      if ('pin' in pending) store('dc_pin', pending.pin);
+      store('dc_name', $('s-name').value.trim() || null);
+      store('dc_goal', $('s-goal').value.trim() || null);
+      store('dc_deadline', $('s-deadline').value || null);
+      pending = {}; applyProfile(); toast('บันทึกโปรไฟล์แล้ว');
+    } catch (er) { toast('บันทึกไม่ได้: พื้นที่ในเครื่องไม่พอ ลองใช้รูปที่เล็กลง'); }
+  });
+  $('prev').addEventListener('click', function () { state.date = shift(state.date, -1); load(); });
+  $('next').addEventListener('click', function () { state.date = shift(state.date, 1); load(); });
+  $('date').addEventListener('change', function (e) { if (e.target.value) { state.date = e.target.value; load(); } });
+
+  $('save').addEventListener('click', function () { saveDay($('save'), 'บันทึกลง Google Sheet', 'บันทึกลง Google Sheet แล้ว'); });
+  $('save-note').addEventListener('click', function () { saveDay($('save-note'), 'บันทึกโน้ต', 'บันทึกโน้ตแล้ว'); });
+  $('clear').addEventListener('click', function () {
+    if (!window.confirm('ล้างติ๊กเช็กลิสต์ของ' + thaiDate(state.date) + 'ทั้งหมด?')) return;
+    state.checked = {}; renderTasks();
+    saveDay($('clear'), 'ล้าง', 'ล้างเช็กลิสต์แล้ว');
+  });
+  $('edit').addEventListener('click', openEditor);
+  $('ed-add').addEventListener('click', function () { var r = edRow({}); $('ed-list').appendChild(r); r.querySelector('.ed-text').focus(); });
+  $('ed-cancel').addEventListener('click', closeEditor);
+  $('ed-save').addEventListener('click', function () {
+    var tasks = [];
+    document.querySelectorAll('#ed-list .ed-row').forEach(function (row, i) {
+      var text = row.querySelector('.ed-text').value.trim();
+      if (text) tasks.push({ key: row.dataset.key || ('c' + Date.now().toString(36) + i), text: text, time: row.querySelector('.ed-time').value.trim() });
+    });
+    if (!tasks.length) { toast('ต้องมีอย่างน้อย 1 งาน'); return; }
+    sendTasks(tasks, $('ed-scope').value, 'บันทึกรายการแล้ว');
+  });
+  $('ed-reset').addEventListener('click', function () {
+    if (!window.confirm('คืนรายการเริ่มต้นของ' + $('ed-scope').selectedOptions[0].textContent.replace('ใช้กับ', '') + '?')) return;
+    sendTasks(null, $('ed-scope').value, 'คืนค่าเริ่มต้นแล้ว');
+  });
+  $('to-cal').addEventListener('click', function () { $('e-date').value = state.date; show('v-cal'); $('e-text').focus(); });
+
+  document.querySelectorAll('#seg button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.querySelectorAll('#seg button').forEach(function (x) { x.classList.toggle('on', x === b); });
+      state.period = b.dataset.p; loadDash();
+    });
+  });
+  $('chart-metric').addEventListener('change', function () { if (state.dash) renderChart(state.dash); });
+
+  $('p-save').addEventListener('click', function () {
+    var p = { name: $('p-name').value.trim(), topic: $('p-topic').value, s1: $('p-s1').value, s2: $('p-s2').value, s3: $('p-s3').value, s4: $('p-s4').value,
+      job: $('p-job').value, age: $('p-age').value, district: $('p-district').value, province: $('p-province').value };
+    if (!p.name) { toast('กรุณาใส่ชื่อ'); return; }
+    var btn = $('p-save'); btn.disabled = true;
+    api({ action: 'addProspect', p: p }).then(function (j) {
+      ['p-name', 'p-s1', 'p-s2', 'p-s3', 'p-s4', 'p-job', 'p-age', 'p-district', 'p-province'].forEach(function (id) { $(id).value = ''; });
+      renderProspects(j.prospects); toast('เพิ่ม ' + p.name + ' แล้ว');
+    }).catch(function (e) { toast(e.message); }).then(function () { btn.disabled = false; });
+  });
+
+  $('e-type').addEventListener('change', function (e) { if (e.target.value.indexOf('วันเกิด') === 0) $('e-yearly').checked = true; });
+  $('e-save').addEventListener('click', function () {
+    var ev = { date: $('e-date').value, time: $('e-time').value, type: $('e-type').value, text: $('e-text').value.trim(), yearly: $('e-yearly').checked };
+    if (!ev.date || !ev.text) { toast('กรอกวันที่และรายละเอียดให้ครบ'); return; }
+    var btn = $('e-save'); btn.disabled = true;
+    api({ action: 'addEvent', e: ev, today: state.date }).then(function (j) {
+      $('e-text').value = ''; $('e-time').value = ''; $('e-yearly').checked = false;
+      renderEvents(j.events); toast('ลงปฏิทินแล้ว');
+    }).catch(function (e) { toast(e.message); }).then(function () { btn.disabled = false; });
+  });
+
+  $('s-save').addEventListener('click', function () {
+    var url = $('s-url').value.trim(), key = $('s-key').value.trim();
+    if (!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(url)) { toast('ลิงก์ต้องขึ้นต้น script.google.com และลงท้าย /exec'); return; }
+    if (!key) { toast('กรุณาใส่รหัสลับ'); return; }
+    store('dc_url', url); store('dc_key', key);
+    api({ action: 'load', date: state.date }).then(function () { toast('เชื่อมต่อสำเร็จ'); show('v-today'); load(); })
+      .catch(function (e) { toast(e.message); });
+  });
+  $('s-forget').addEventListener('click', function () { store('dc_url', null); store('dc_key', null); $('s-url').value = ''; $('s-key').value = ''; toast('ลบการเชื่อมต่อแล้ว'); });
+
+  $('e-date').value = state.date;
+  applyProfile();
+  startQuotes();
+  load();
+})();
+</script>
+</body>
+</html>
