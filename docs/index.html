@@ -632,7 +632,7 @@
 
   // ---------- UI ทั่วไป ----------
   var $ = function (id) { return document.getElementById(id); };
-  var state = { date: bangkokToday(), tasks: [], checked: {}, events: [], period: 'week', dash: null, editing: false };
+  var state = { date: bangkokToday(), tasks: [], checked: {}, touched: {}, typed: {}, loadSeq: 0, events: [], period: 'week', dash: null, editing: false };
   var toastTimer;
   function toast(msg) { var t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.classList.remove('show'); }, 2600); }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -655,7 +655,8 @@
       row.className = 'task' + (on ? ' done' : '');
       row.innerHTML = '<input type="checkbox"' + (on ? ' checked' : '') + '><div><div class="t">' + esc(t.text) + '</div>' + (t.time ? '<div class="h">' + esc(t.time) + '</div>' : '') + '</div>';
       row.querySelector('input').addEventListener('change', function (e) {
-        state.checked[t.key] = e.target.checked; row.classList.toggle('done', e.target.checked); renderProgress();
+        state.checked[t.key] = e.target.checked; state.touched[t.key] = e.target.checked;
+        row.classList.toggle('done', e.target.checked); renderProgress();
       });
       box.appendChild(row);
     });
@@ -717,10 +718,15 @@
     $('g-phasegoals').innerHTML = (g.phaseGoals || []).map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('');
   }
   function fillDay(day) {
+    // ข้อมูลจากชีต + สิ่งที่ผู้ใช้เปลี่ยนไปแล้วระหว่างรอโหลด (ของผู้ใช้ชนะ)
     state.checked = {};
     (day.checked || []).forEach(function (k) { state.checked[k] = true; });
-    document.querySelectorAll('[data-num]').forEach(function (i) { var v = (day.nums || {})[i.dataset.num]; i.value = (v === '' || v == null) ? '' : v; });
-    $('note').value = day.note || '';
+    Object.keys(state.touched).forEach(function (k) { state.checked[k] = state.touched[k]; });
+    document.querySelectorAll('[data-num]').forEach(function (i) {
+      if (state.typed[i.dataset.num]) return;
+      var v = (day.nums || {})[i.dataset.num]; i.value = (v === '' || v == null) ? '' : v;
+    });
+    if (!state.typed.note) $('note').value = day.note || '';
     renderTasks();
   }
   function renderProspects(list) {
@@ -757,11 +763,16 @@
     $('date').value = state.date;
     $('today-label').textContent = thaiDate(state.date);
     if (state.editing) closeEditor();
+    state.touched = {}; state.typed = {};
+    var seq = ++state.loadSeq;
+    document.querySelectorAll('[data-num]').forEach(function (i) { i.value = ''; }); $('note').value = '';
+    state.checked = {};
     state.tasks = defaultTasks(state.date);
     renderTasks();
     if (!cfg().url) { show('v-settings'); return; }
     $('saved-at').textContent = 'กำลังโหลดจาก Google Sheet…';
     api({ action: 'load', date: state.date }).then(function (j) {
+      if (seq !== state.loadSeq) return; // ผู้ใช้เปลี่ยนวันไปแล้ว
       state.tasks = (j.tasks && j.tasks.length) ? j.tasks : defaultTasks(state.date);
       fillDay(j.day); renderProspects(j.prospects); renderEvents(j.events); renderGoal(j.goal);
       $('stat-streak').textContent = j.streak ? 'ทำได้ดีติดกัน ' + j.streak + ' วัน' : '';
@@ -1059,11 +1070,15 @@
   $('next').addEventListener('click', function () { state.date = shift(state.date, 1); load(); });
   $('date').addEventListener('change', function (e) { if (e.target.value) { state.date = e.target.value; load(); } });
 
+  document.querySelectorAll('[data-num]').forEach(function (i) { i.addEventListener('input', function () { state.typed[i.dataset.num] = true; }); });
+  $('note').addEventListener('input', function () { state.typed.note = true; });
   $('save').addEventListener('click', function () { saveDay($('save'), 'บันทึกลง Google Sheet', 'บันทึกลง Google Sheet แล้ว'); });
   $('save-note').addEventListener('click', function () { saveDay($('save-note'), 'บันทึกโน้ต', 'บันทึกโน้ตแล้ว'); });
   $('clear').addEventListener('click', function () {
     if (!window.confirm('ล้างติ๊กเช็กลิสต์ของ' + thaiDate(state.date) + 'ทั้งหมด?')) return;
-    state.checked = {}; renderTasks();
+    state.checked = {}; state.touched = {};
+    state.tasks.forEach(function (t) { state.touched[t.key] = false; });
+    renderTasks();
     saveDay($('clear'), 'ล้าง', 'ล้างเช็กลิสต์แล้ว');
   });
   $('edit').addEventListener('click', openEditor);
